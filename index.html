@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IMC Onboarding Tracker</title>
+<title>IMC HR Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -137,7 +137,7 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
 <nav>
   <div class="nbrand">
     <div class="nlogo">OT</div>
-    <span class="ntitle">Onboarding Tracker</span>
+    <span class="ntitle">HR Dashboard</span>
     <span class="nsub">· India Operations · IMC</span>
   </div>
   <button class="homebtn" id="homeNavBtn" title="Go to dashboard">⌂</button>
@@ -433,7 +433,7 @@ function showHome() {
   var totalRem = totalTasks - totalDone;
   var ovPct = totalTasks ? Math.round(totalDone / totalTasks * 100) : 0;
 
-  var html = '<div class="htitle">Dashboard Overview</div>'
+  var html = '<div class="htitle">HR Dashboard</div>'
     + '<div class="hsub">India Operations &middot; IMC &middot; All employees at a glance</div>'
     + '<div class="statgrid">'
     + '<div class="statcard"><div class="statlbl">Total employees</div><div class="statval">' + totalEmps + '</div></div>'
@@ -529,7 +529,12 @@ function showEmployee(id) {
     + '<div class="ehrow">'
     + '<div class="avlg" style="background:' + a.bg + ';color:' + a.c + '">' + initials(e.name) + '</div>'
     + '<div><div class="ehname">' + e.name + '</div>'
-    + '<div class="ehmeta">' + [e.role, e.dept, e.doj ? 'DOJ: ' + e.doj : ''].filter(Boolean).join(' · ') + '</div></div>'
+    + '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px">'
+    + '<div><div style="font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Position</div><div style="font-size:13px;color:#1A1917;font-weight:500">' + (e.role || '—') + '</div></div>'
+    + '<div><div style="font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Department</div><div style="font-size:13px;color:#1A1917;font-weight:500">' + (e.dept || '—') + '</div></div>'
+    + '<div><div style="font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Date of joining</div><div style="font-size:13px;color:#1A1917;font-weight:500">' + (e.doj || '—') + '</div></div>'
+    + '<div><div style="font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Checklist type</div><div style="font-size:13px;color:#1A1917;font-weight:500">' + e.type + '</div></div>'
+    + '</div></div>'
     + '<div class="ehacts">'
     + '<button class="hbtn back" id="backBtn">&larr; Back to dashboard</button>'
     + '<button class="hbtn" id="editBtn">&#9998; Edit</button>'
@@ -548,6 +553,40 @@ function showEmployee(id) {
     + '</div>'
     + '<div class="clbadge" style="background:' + col.bg + ';border:1px solid ' + col.dot + '44;color:' + col.c + '">'
     + '<div class="clbadgedot" style="background:' + col.dot + '"></div>' + e.type + '</div>';
+
+  // ── TIMELINE ──
+  html += '<div style="background:#fff;border:1px solid #E4E1DA;border-radius:14px;padding:16px;margin-bottom:14px">';
+  html += '<div style="font-size:12px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">Timeline</div>';
+  for (var pi = 0; pi < phases.length; pi++) {
+    var phObj = phases[pi];
+    var phDone = 0;
+    for (var pti = 0; pti < phObj.tasks.length; pti++) { if (ch[phObj.tasks[pti].id]) phDone++; }
+    var phPct = phObj.tasks.length ? Math.round(phDone / phObj.tasks.length * 100) : 0;
+    var isComplete = phDone === phObj.tasks.length && phObj.tasks.length > 0;
+    var isStarted = phDone > 0 && !isComplete;
+    var dotBg = isComplete ? '#1D9E75' : isStarted ? col.dot : '#E4E1DA';
+    var lineBg = isComplete ? '#1D9E75' : '#E4E1DA';
+    var statusTxt = isComplete ? 'Completed' : isStarted ? 'In progress &mdash; ' + phDone + ' of ' + phObj.tasks.length + ' tasks done' : 'Not started';
+    var statusColor = isComplete ? '#1D9E75' : isStarted ? col.c : '#9E9B94';
+    html += '<div style="display:flex;gap:14px">';
+    html += '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">';
+    html += '<div style="width:24px;height:24px;border-radius:50%;background:' + dotBg + ';display:flex;align-items:center;justify-content:center">';
+    if (isComplete) html += '<svg width="12" height="10" viewBox="0 0 10 8" fill="none"><polyline points="1,4 3.5,7 9,1" stroke="white" stroke-width="2"/></svg>';
+    else html += '<div style="width:8px;height:8px;border-radius:50%;background:' + (isStarted ? '#fff' : '#D0CCC3') + '"></div>';
+    html += '</div>';
+    if (pi < phases.length - 1) html += '<div style="width:2px;min-height:28px;flex:1;background:' + lineBg + ';margin:2px 0"></div>';
+    html += '</div>';
+    html += '<div style="flex:1;padding-bottom:' + (pi < phases.length - 1 ? '14px' : '0') + '">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
+    html += '<div style="font-size:13px;font-weight:600;color:' + (isComplete ? '#1D9E75' : '#1A1917') + '">' + phObj.phase + '</div>';
+    html += '<div style="font-size:11px;font-family:\"DM Mono\",monospace;color:' + (isComplete ? '#1D9E75' : '#9E9B94') + '">' + phDone + '/' + phObj.tasks.length + '</div>';
+    html += '</div>';
+    html += '<div style="height:4px;background:#F0EEE9;border-radius:2px;overflow:hidden;margin-bottom:5px">';
+    html += '<div style="height:100%;background:' + dotBg + ';border-radius:2px;width:' + phPct + '%"></div></div>';
+    html += '<div style="font-size:11px;color:' + statusColor + '">' + statusTxt + '</div>';
+    html += '</div></div>';
+  }
+  html += '</div>';
 
   for (var ph = 0; ph < phases.length; ph++) {
     var phase = phases[ph];
