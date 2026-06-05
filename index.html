@@ -3,161 +3,185 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Onboarding Tracker — India Operations</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>IMC Onboarding Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F7F6F3;--surface:#fff;--surface2:#F0EEE9;--border:#E4E1DA;--border2:#D0CCC3;--text:#1A1917;--text2:#6B6860;--text3:#9E9B94;--green:#1D9E75;--gl:#E1F5EE;--gm:#9FE1CB;--blue:#2563EB;--bl:#EFF6FF;--purple:#7C3AED;--pl:#F5F3FF;--red:#DC2626;--rl:#FEF2F2;--r:10px;--rl2:14px;--sh:0 1px 3px rgba(0,0,0,.06);--shm:0 4px 16px rgba(0,0,0,.10)}
+:root{--bg:#F7F6F3;--sur:#fff;--sur2:#F0EEE9;--bor:#E4E1DA;--bor2:#D0CCC3;--tx:#1A1917;--tx2:#6B6860;--tx3:#9E9B94;--grn:#1D9E75;--gl:#E1F5EE;--gm:#9FE1CB;--blu:#2563EB;--bl:#EFF6FF;--pur:#7C3AED;--pl:#F5F3FF;--red:#DC2626;--rl:#FEF2F2;--r:10px;--rl:14px;--sh:0 1px 3px rgba(0,0,0,.06);--shm:0 4px 16px rgba(0,0,0,.09)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
-.nav-brand{display:flex;align-items:center;gap:10px}
-.nav-logo{width:30px;height:30px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
-.nav-title{font-size:14px;font-weight:600}
-.nav-sub{font-size:11px;color:var(--text3);margin-top:1px}
-.nav-right{display:flex;align-items:center;gap:8px}
-.badge{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:20px}
-.bdot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 56px)}
-.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
-.sb-head{padding:14px 14px 10px;border-bottom:1px solid var(--border)}
-.sb-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
-.sb-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
-.sb-count{font-size:11px;color:var(--text3);background:var(--surface2);padding:2px 7px;border-radius:10px}
-.search{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none}
-.search::placeholder{color:var(--text3)}
-.emp-list{flex:1;overflow-y:auto;padding:8px}
-.emp-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);cursor:pointer;transition:background .12s;margin-bottom:2px}
-.emp-item:hover,.emp-item.active{background:var(--surface2)}
-.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.ei{flex:1;min-width:0}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+nav{background:var(--sur);border-bottom:1px solid var(--bor);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.nlogo{width:28px;height:28px;background:var(--tx);border-radius:7px;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ntitle{font-size:14px;font-weight:600;margin-left:9px}
+.nsub{font-size:11px;color:var(--tx3);margin-left:4px}
+.nbrand{display:flex;align-items:center}
+.nright{display:flex;align-items:center;gap:8px}
+.nbadge{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2);background:var(--sur2);border:1px solid var(--bor);padding:4px 10px;border-radius:20px}
+.ndot{width:6px;height:6px;border-radius:50%;background:var(--grn)}
+.nibtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--bor);background:var(--sur);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx2);font-size:16px;transition:background .15s}
+.nibtn:hover{background:var(--sur2)}
+.lay{display:grid;grid-template-columns:256px 1fr;min-height:calc(100vh - 54px)}
+.sbar{background:var(--sur);border-right:1px solid var(--bor);display:flex;flex-direction:column}
+.sbh{padding:13px 13px 10px;border-bottom:1px solid var(--bor)}
+.sbhr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sblbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em}
+.sbcnt{font-size:11px;color:var(--tx3);background:var(--sur2);padding:2px 7px;border-radius:10px}
+.srch{width:100%;padding:7px 10px;border:1px solid var(--bor);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:13px;color:var(--tx);background:var(--bg);outline:none}
+.srch::placeholder{color:var(--tx3)}
+.eml{flex:1;overflow-y:auto;padding:8px}
+.eit{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);cursor:pointer;margin-bottom:2px;transition:background .12s}
+.eit:hover,.eit.act{background:var(--sur2)}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
 .en{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.er{font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mbar{height:2px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
-.mfill{height:100%;background:var(--green);border-radius:2px}
-.epct{font-size:11px;font-weight:500;color:var(--text3);flex-shrink:0;font-family:"DM Mono",monospace}
-.add-btn{margin:8px;padding:10px;border:1px dashed var(--border2);border-radius:var(--r);background:none;font-family:"DM Sans",sans-serif;font-size:13px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
-.add-btn:hover{background:var(--surface2);color:var(--text)}
+.er{font-size:11px;color:var(--tx3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mb{height:2px;background:var(--bor);border-radius:2px;margin-top:3px;overflow:hidden}
+.mf{height:100%;background:var(--grn);border-radius:2px}
+.ep{font-size:11px;font-weight:500;color:var(--tx3);flex-shrink:0;font-family:"DM Mono",monospace}
+.addbtn{margin:8px;padding:10px;border:1px dashed var(--bor2);border-radius:var(--r);background:none;font-family:"DM Sans",sans-serif;font-size:13px;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.addbtn:hover{background:var(--sur2);color:var(--tx)}
 .main{padding:22px;overflow-y:auto}
-.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center}
-.w-icon{font-size:40px;margin-bottom:16px}
-.w-title{font-size:18px;font-weight:500;margin-bottom:8px}
-.w-sub{font-size:13px;color:var(--text2);max-width:320px;line-height:1.65}
-.emp-hdr{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);padding:20px;margin-bottom:14px;box-shadow:var(--sh)}
-.hrow{display:flex;align-items:flex-start;gap:13px;margin-bottom:16px}
-.av-lg{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
-.hinfo{flex:1}
-.hname{font-size:17px;font-weight:600}
-.hmeta{font-size:12px;color:var(--text2);margin-top:3px}
-.hacts{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
-.hbtn{padding:6px 12px;border:1px solid var(--border);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text2);display:flex;align-items:center;gap:5px;transition:all .15s;text-decoration:none}
-.hbtn:hover{background:var(--surface2);color:var(--text)}
-.hbtn.jira{background:var(--bl);color:var(--blue);border-color:#BFDBFE}
+
+/* HOME DASHBOARD */
+.hometitle{font-size:20px;font-weight:600;margin-bottom:3px}
+.homesub{font-size:13px;color:var(--tx2);margin-bottom:20px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:22px}
+.statcard{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rl);padding:16px;box-shadow:var(--sh)}
+.statlbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.statval{font-size:30px;font-weight:600;font-family:"DM Mono",monospace;color:var(--tx)}
+.statval.grn{color:var(--grn)}
+.statbar{height:4px;background:var(--sur2);border-radius:2px;overflow:hidden;margin-top:8px}
+.statbarfill{height:100%;background:var(--grn);border-radius:2px}
+.sectlbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.typegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:22px}
+.typecard{border-radius:var(--rl);padding:14px;border:1px solid transparent}
+.typecname{font-size:12px;font-weight:600;margin-bottom:8px}
+.typecval{font-size:26px;font-weight:700;font-family:"DM Mono",monospace;margin-bottom:2px}
+.typecmeta{font-size:11px;opacity:.7;margin-bottom:8px}
+.typecbar{height:3px;border-radius:2px;overflow:hidden}
+.typecbarfill{height:100%;border-radius:2px}
+.emptable{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh)}
+.emptable table{width:100%;border-collapse:collapse;font-size:13px}
+.emptable th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;background:var(--sur2);border-bottom:1px solid var(--bor)}
+.emptable td{padding:10px 14px;border-bottom:1px solid var(--bor)}
+.emptable tr:last-child td{border-bottom:none}
+.emptable tr:hover td{background:var(--sur2);cursor:pointer}
+.typepill{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;white-space:nowrap}
+.tpbar{display:flex;align-items:center;gap:7px}
+.tpbartrack{flex:1;height:4px;background:var(--sur2);border-radius:2px;overflow:hidden;min-width:60px}
+.tpbarfill{height:100%;background:var(--grn);border-radius:2px}
+.tppct{font-size:11px;font-weight:600;color:var(--grn);font-family:"DM Mono",monospace;min-width:30px}
+
+/* EMP DETAIL */
+.ehdr{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rl);padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.ehrow{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.avlg{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.ename{font-size:16px;font-weight:600}
+.emeta{font-size:12px;color:var(--tx2);margin-top:3px}
+.eacts{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
+.hbtn{padding:6px 11px;border:1px solid var(--bor);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:var(--sur);color:var(--tx2);display:flex;align-items:center;gap:4px;transition:all .15s;text-decoration:none}
+.hbtn:hover{background:var(--sur2);color:var(--tx)}
+.hbtn.jira{background:var(--bl);color:var(--blu);border-color:#BFDBFE}
 .hbtn.jira:hover{background:#DBEAFE}
+.hbtn.back{background:var(--sur2);border-color:var(--bor2)}
 .hbtn.danger{color:var(--red);border-color:#FECACA}
 .hbtn.danger:hover{background:var(--rl)}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:13px}
-.met{background:var(--bg);border-radius:var(--r);padding:10px 12px}
-.ml{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
-.mv{font-size:19px;font-weight:600;font-family:"DM Mono",monospace}
-.mv.green{color:var(--green)}
-.ptrack{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:4px}
-.pbar{height:100%;background:var(--green);border-radius:3px;transition:width .4s ease}
-.plbl{font-size:11px;color:var(--text3);font-family:"DM Mono",monospace}
-.cl-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
-.cl-tab{padding:6px 13px;border:1px solid var(--border);border-radius:20px;font-family:"DM Sans",sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;white-space:nowrap}
-.cl-tab:hover{border-color:var(--border2);color:var(--text)}
-.cl-tab.active{background:var(--text);color:#fff;border-color:var(--text)}
-.ctn{font-size:10px;opacity:.65;margin-left:3px;font-family:"DM Mono",monospace}
-.phase{margin-bottom:20px}
-.ph{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.pnm{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em}
-.pp{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden;max-width:72px}
-.ppf{height:100%;background:var(--green);border-radius:2px}
-.pct{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);font-family:"DM Mono",monospace}
-.task{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:var(--r);cursor:pointer;margin-bottom:2px;transition:background .1s}
-.task:hover{background:var(--surface2)}
-.task.done{opacity:.45}
-.tcb{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;background:var(--surface)}
-.task.done .tcb{background:var(--green);border-color:var(--green)}
+.mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:7px;margin-bottom:12px}
+.met{background:var(--bg);border-radius:var(--r);padding:9px 11px}
+.metl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.metv{font-size:18px;font-weight:600;font-family:"DM Mono",monospace}
+.metv.grn{color:var(--grn)}
+.ptrak{height:4px;background:var(--sur2);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.pbar{height:100%;background:var(--grn);border-radius:3px;transition:width .4s}
+.plbl{font-size:11px;color:var(--tx3);font-family:"DM Mono",monospace}
+.cltype{display:flex;align-items:center;gap:8px;margin-bottom:13px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500}
+.phase{margin-bottom:18px}
+.phdr{display:flex;align-items:center;gap:8px;margin-bottom:7px;padding-bottom:7px;border-bottom:1px solid var(--bor)}
+.phnm{font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
+.phprog{flex:1;height:3px;background:var(--bor);border-radius:2px;overflow:hidden;max-width:70px}
+.phprogf{height:100%;background:var(--grn);border-radius:2px}
+.phct{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--sur2);color:var(--tx3);font-family:"DM Mono",monospace}
+.task{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;margin-bottom:2px;transition:background .1s}
+.task:hover{background:var(--sur2)}
+.task.dn{opacity:.45}
+.tcb{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--bor2);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;background:var(--sur);transition:all .15s}
+.task.dn .tcb{background:var(--grn);border-color:var(--grn)}
 .ck{width:10px;height:10px;stroke:#fff;stroke-width:2.5;fill:none;display:none}
-.task.done .ck{display:block}
-.tb{flex:1;min-width:0}
-.tt{font-size:13px;color:var(--text);line-height:1.45}
-.task.done .tt{text-decoration:line-through;color:var(--text3)}
+.task.dn .ck{display:block}
+.tt{font-size:13px;color:var(--tx);line-height:1.45}
+.task.dn .tt{text-decoration:line-through;color:var(--tx3)}
 .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
 .tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
-.to{background:var(--bl);color:var(--blue)}
-.tl{background:var(--gl);color:#065F46}
-.tc{background:var(--pl);color:var(--purple)}
-.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
-.modal-ov.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--rl2);padding:24px;width:100%;max-width:420px;box-shadow:var(--shm);animation:su .2s ease}
-@keyframes su{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
-.mtitle{font-size:15px;font-weight:600;margin-bottom:18px}
-.field{margin-bottom:12px}
-.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px}
-.field input,.field select{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none}
-.info-box{border-radius:var(--r);padding:11px 13px;margin-bottom:12px;font-size:12px;line-height:1.55}
-.info-box.blue{background:var(--bl);border:1px solid #BFDBFE;color:#1E40AF}
-.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
-.mbtn{padding:8px 16px;border:1px solid var(--border);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
-.mbtn:hover{background:var(--surface2)}
-.mbtn.primary{background:var(--text);color:#fff;border-color:var(--text)}
-.mbtn.primary:hover{background:#2d2c2a}
+.tago{background:var(--bl);color:var(--blu)}
+.tagl{background:var(--gl);color:#065F46}
+.tagc{background:var(--pl);color:var(--pur)}
+
+/* MODAL */
+.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.mov.op{display:flex}
+.mod{background:var(--sur);border-radius:var(--rl);padding:22px;width:100%;max-width:410px;box-shadow:var(--shm);animation:su .2s ease}
+@keyframes su{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modtitle{font-size:15px;font-weight:600;margin-bottom:16px}
+.fld{margin-bottom:11px}
+.fld label{display:block;font-size:12px;font-weight:500;color:var(--tx2);margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:8px 11px;border:1px solid var(--bor);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:13px;color:var(--tx);background:var(--sur);outline:none}
+.ibox{border-radius:var(--r);padding:10px 12px;margin-bottom:11px;font-size:12px;line-height:1.5}
+.ibox.blue{background:var(--bl);border:1px solid #BFDBFE;color:#1E40AF}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.mbtn{padding:8px 15px;border:1px solid var(--bor);border-radius:var(--r);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--sur);color:var(--tx2);transition:all .15s}
+.mbtn:hover{background:var(--sur2)}
+.mbtn.pri{background:var(--tx);color:#fff;border-color:var(--tx)}
+.mbtn.pri:hover{background:#2d2c2a}
 .mbtn:disabled{opacity:.5;cursor:not-allowed}
+
+/* TOASTS */
 #toasts{position:fixed;bottom:18px;right:18px;z-index:300;display:flex;flex-direction:column;gap:7px}
 .toast{padding:11px 15px;border-radius:var(--r);font-size:13px;box-shadow:var(--shm);display:flex;align-items:flex-start;gap:8px;animation:ti .2s ease;max-width:340px;line-height:1.4}
-@keyframes ti{from{transform:translateX(16px);opacity:0}to{transform:translateX(0);opacity:1}}
-.toast.success{background:var(--gl);color:#065F46;border:1px solid var(--gm)}
-.toast.error{background:var(--rl);color:#991B1B;border:1px solid #FECACA}
-.toast.info{background:var(--bl);color:#1E40AF;border:1px solid #BFDBFE}
+@keyframes ti{from{transform:translateX(14px);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.ok{background:var(--gl);color:#065F46;border:1px solid var(--gm)}
+.toast.err{background:var(--rl);color:#991B1B;border:1px solid #FECACA}
+.toast.inf{background:var(--bl);color:#1E40AF;border:1px solid #BFDBFE}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0;margin-top:1px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.empty{padding:24px;text-align:center;font-size:12px;color:var(--text3)}
-a.jlink{color:var(--blue);font-size:12px;text-decoration:none}
-a.jlink:hover{text-decoration:underline}
+a.jlnk{color:var(--blu);text-decoration:none}
+a.jlnk:hover{text-decoration:underline}
+.empty{padding:20px;text-align:center;font-size:12px;color:var(--tx3)}
 </style>
 </head>
 <body>
-
 <nav>
-  <div class="nav-brand">
-    <div class="nav-logo">OT</div>
-    <div>
-      <div class="nav-title">Onboarding Tracker</div>
-      <div class="nav-sub">India Operations · IMC</div>
-    </div>
+  <div class="nbrand">
+    <div class="nlogo">OT</div>
+    <span class="ntitle">Onboarding Tracker</span>
+    <span class="nsub">· India Operations · IMC</span>
   </div>
-  <div class="nav-right"><button class="icon-btn" onclick="sel=null;renderHome()" title="Dashboard home" style="font-size:13px;font-weight:600">⌂</button>
-    <div class="badge"><div class="bdot"></div>Jira connected</div>
+  <div class="nright">
+    <div class="nbadge"><div class="ndot"></div>Jira connected</div>
+    <button class="nibtn" onclick="goHome()" title="Dashboard home">&#8962;</button>
   </div>
 </nav>
 
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sb-head">
-      <div class="sb-row">
-        <span class="sb-label">Employees</span>
-        <span class="sb-count" id="emp-count">0</span>
+<div class="lay">
+  <aside class="sbar">
+    <div class="sbh">
+      <div class="sbhr">
+        <span class="sblbl">Employees</span>
+        <span class="sbcnt" id="ecnt">0</span>
       </div>
-      <input class="search" placeholder="Search employees…" oninput="filterEmps(this.value)"/>
+      <input class="srch" placeholder="Search&#8230;" oninput="filterEmps(this.value)"/>
     </div>
-    <div class="emp-list" id="emp-list"></div>
-    <button class="add-btn" onclick="showAdd()">+ Add new employee</button>
+    <div class="eml" id="eml"></div>
+    <button class="addbtn" onclick="showAdd()">+ Add new employee</button>
   </aside>
   <main class="main" id="main"></main>
 </div>
 
-<div class="modal-ov" id="modal"><div class="modal" id="modal-inner"></div></div>
+<div class="mov" id="modal"><div class="mod" id="modinner"></div></div>
 <div id="toasts"></div>
 
 <script>
-const JIRA_SITE = "imcfm.atlassian.net";
-const JIRA_EMAIL = "Swapna.sawant@imc.com";
-const JIRA_TOKEN = "ATATT3xFfGF0ImpF3zrxzW0Dz7TW3ueEK7rTVoeg_OLlP5SP9lyw5qYclvR9kOKo3dU4uK6GOux5E_Ip29gQ6it0e_wxnxLVMS9YUfPRlH8sJxHPQ2hHW6B4O4c19YDeChcvULa7xHIisbC1nJ6aYHwfsuSdnG45V5rbbZeji9K-kwK_gZsQ0hI=9CCE671B";
+const JS="imcfm.atlassian.net",JE="Swapna.sawant@imc.com",JT="ATATT3xFfGF0ImpF3zrxzW0Dz7TW3ueEK7rTVoeg_OLlP5SP9lyw5qYclvR9kOKo3dU4uK6GOux5E_Ip29gQ6it0e_wxnxLVMS9YUfPRlH8sJxHPQ2hHW6B4O4c19YDeChcvULa7xHIisbC1nJ6aYHwfsuSdnG45V5rbbZeji9K-kwK_gZsQ0hI=9CCE671B";
 
-const DATA={
-"Local Onboarding":{phases:[
+const CL={
+"Local Onboarding":{col:{bg:"#EFF6FF",c:"#1D4ED8",dot:"#2563EB"},phases:[
 {name:"Pre onboarding",tasks:[
 {id:"lo1",n:1,cat:"Relocation",own:"Employee",tl:"Ongoing",t:"Raise reimbursement request on Workday if relocation allowance was paid in advance."},
 {id:"lo2",n:2,cat:"Insurance",own:"Finance",tl:"On receipt of email",t:"Update employee and dependent details in insurance records."},
@@ -208,7 +232,7 @@ const DATA={
 {id:"lo43",n:43,cat:"BGV Report",own:"HR Operations",tl:"Within 1st month",t:"Save the BGV completion report in the employee's Box folder."}
 ]}
 ]},
-"International Incoming":{phases:[
+"International Incoming":{col:{bg:"#F0FDF4",c:"#15803D",dot:"#16A34A"},phases:[
 {name:"Pre arrival",tasks:[
 {id:"ii1",n:1,cat:"Tax Guidance",own:"Deloitte",tl:"Ongoing",t:"Conduct the tax briefing and guide on the annual documentation process."},
 {id:"ii2",n:2,cat:"Visa Initiation",own:"Employee",tl:"On commencement of transfer",t:"Initiate the Visa application process for the IAA."},
@@ -250,13 +274,13 @@ const DATA={
 {id:"ii36",n:36,cat:"Connect Post",own:"HR Operations",tl:"Day 1",t:"Update the transfer details on the Connect platform."},
 {id:"ii37",n:37,cat:"Leave Accrual",own:"HR Operations",tl:"Day 1",t:"Accrue leaves as directed by the home office."},
 {id:"ii38",n:38,cat:"Group Addition",own:"HR Operations",tl:"Day 1",t:"Add employee to DLU distribution list, Mattermost channel, and HR team groups."},
-{id:"ii39",n:39,cat:"Ola and Uber Access",own:"Travel Desk",tl:"Day 1",t:"Assign Ola and Uber access to the employee's account."},
+{id:"ii39",n:39,cat:"Ola and Uber",own:"Travel Desk",tl:"Day 1",t:"Assign Ola and Uber access to the employee's account."},
 {id:"ii40",n:40,cat:"Aadhaar Card",own:"Visa Agent",tl:"Post moving to flat",t:"Submit the Aadhaar card application upon moving to a flat."}
 ]}
 ]},
-"Local Offboarding":{phases:[
+"Local Offboarding":{col:{bg:"#FFF7ED",c:"#C2410C",dot:"#EA580C"},phases:[
 {name:"Pre offboarding",tasks:[
-{id:"of1",n:1,cat:"Agreement Letter",own:"HR Operations",tl:"On receipt of resignation",t:"Draft and issue the termination letter to the employee."},
+{id:"of1",n:1,cat:"Letter",own:"HR Operations",tl:"On receipt of resignation",t:"Draft and issue the termination letter to the employee."},
 {id:"of2",n:2,cat:"Resignation Email",own:"HR Operations",tl:"On receipt of resignation",t:"Save the resignation email in the employee's Box folder."},
 {id:"of3",n:3,cat:"Communication",own:"HR Operations",tl:"On receipt of resignation",t:"Send a farewell email and update the internal team."},
 {id:"of4",n:4,cat:"Workday",own:"HR Operations",tl:"On confirmation from HRBP",t:"Update employee records in Workday upon HRBP confirmation."},
@@ -277,7 +301,7 @@ const DATA={
 {id:"of15",n:15,cat:"Exit from Comms",own:"HR Operations",tl:"LWD",t:"Remove employee's email from DLU, Mattermost, and WhatsApp group."}
 ]}
 ]},
-"International Outgoing":{phases:[
+"International Outgoing":{col:{bg:"#FDF4FF",c:"#7E22CE",dot:"#9333EA"},phases:[
 {name:"Pre departure",tasks:[
 {id:"io1",n:1,cat:"Payments",own:"Finance",tl:"On receipt from Business Leads",t:"Process the VR and Deferred Payment Reimbursement."},
 {id:"io2",n:2,cat:"Recovery",own:"Finance Legal",tl:"On receipt from Business Leads",t:"Initiate security deposit recovery through Legal and Finance if applicable."},
@@ -301,301 +325,268 @@ const DATA={
 };
 
 const PAL=[{bg:"#EFF6FF",c:"#1D4ED8"},{bg:"#F0FDF4",c:"#15803D"},{bg:"#FDF4FF",c:"#7E22CE"},{bg:"#FFF7ED",c:"#C2410C"},{bg:"#FFF1F2",c:"#BE123C"},{bg:"#F0FDFA",c:"#0F766E"}];
-let emps={},sel=null,curCL="Local Onboarding",qry="";
-const SK="obt_imc_v1";
+let emps={},sel=null,qry="";
+const SK="obt_imc_v2";
 
 function load(){try{const s=localStorage.getItem(SK);if(s)emps=JSON.parse(s);}catch(e){}}
 function save(){try{localStorage.setItem(SK,JSON.stringify(emps));}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function inits(n){return n.trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase()||"?";}
 function pal(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))&0xfffffff;return PAL[h%PAL.length];}
-function tks(cl){return DATA[cl].phases.flatMap(p=>p.tasks);}
-function dnCnt(e,cl){const ch=e.checks[cl]||{};return tks(cl).filter(t=>ch[t.id]).length;}
-function ovPct(e){const t=tks(e.type).length;const d=dnCnt(e,e.type);return t?Math.round(d/t*100):0;}
+function tks(type){return CL[type].phases.flatMap(p=>p.tasks);}
+function dn(e){const ch=e.checks||{};return tks(e.type).filter(t=>ch[t.id]).length;}
+function pct(e){const tot=tks(e.type).length;return tot?Math.round(dn(e)/tot*100):0;}
 
 function toast(msg,type,dur){
-  dur=dur||4500;
   const el=document.createElement("div");
   el.className="toast "+type;
-  const icons={success:"&#10003;",error:"&#10005;",info:"&#8505;"};
-  el.innerHTML="<span>"+(icons[type]||"&#8505;")+"</span><span>"+msg+"</span>";
+  el.innerHTML='<span>'+(type==="ok"?"&#10003;":type==="err"?"&#10005;":"&#8505;")+'</span><span>'+msg+'</span>';
   document.getElementById("toasts").appendChild(el);
-  setTimeout(()=>el.remove(),dur);
+  setTimeout(()=>el.remove(),dur||4500);
 }
 
-async function jiraFetch(path,method,body){
-  const url="https://"+JIRA_SITE+"/rest/api/3/"+path;
-  const r=await fetch(url,{method:method,headers:{"Authorization":"Basic "+btoa(JIRA_EMAIL+":"+JIRA_TOKEN),"Content-Type":"application/json","Accept":"application/json"},body:body?JSON.stringify(body):undefined});
-  if(!r.ok){const e=await r.text();throw new Error(e);}
+async function jFetch(path,method,body){
+  const r=await fetch("https://"+JS+"/rest/api/3/"+path,{method,headers:{"Authorization":"Basic "+btoa(JE+":"+JT),"Content-Type":"application/json","Accept":"application/json"},body:body?JSON.stringify(body):undefined});
+  if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
 
-async function createJiraProject(e){
-  const cl=e.type;
-  const raw=e.name.replace(/[^A-Za-z]/g,"").toUpperCase();
-  const key=("IMC"+(raw.slice(0,3))+Date.now().toString(36).slice(-2)).slice(0,10);
-  toast("Creating Jira project for "+e.name+"... this may take a moment.","info",20000);
-  const proj=await jiraFetch("project","POST",{
-    key:key,
-    name:e.name+" - "+cl,
-    projectTypeKey:"software",
-    projectTemplateKey:"com.pyxis.greenhopper.jira:gh-simplified-agility-scrum",
-    description:"Onboarding checklist for "+e.name+". Type: "+cl+". DOJ: "+(e.doj||"TBD")+". Created by Onboarding Tracker."
-  });
+async function createJira(e){
+  const key=("IMC"+e.name.replace(/[^A-Za-z]/g,"").toUpperCase().slice(0,3)+Date.now().toString(36).slice(-2)).slice(0,10);
+  toast("Creating Jira project for "+e.name+"...","inf",20000);
+  const proj=await jFetch("project","POST",{key,name:e.name+" - "+e.type,projectTypeKey:"software",projectTemplateKey:"com.pyxis.greenhopper.jira:gh-simplified-agility-scrum",description:"Onboarding checklist for "+e.name+". Type: "+e.type+". DOJ: "+(e.doj||"TBD")});
   const pk=proj.key;
-  for(const phase of DATA[cl].phases){
+  for(const phase of CL[e.type].phases){
     for(const task of phase.tasks){
-      await jiraFetch("issue","POST",{fields:{
-        project:{key:pk},
-        summary:"["+phase.name+"] "+task.n+". "+task.t,
-        description:{type:"doc",version:1,content:[{type:"paragraph",content:[{type:"text",text:"Owner: "+task.own+"\nTimeline: "+task.tl+"\nCategory: "+task.cat}]}]},
-        issuetype:{name:"Task"},
-        labels:[task.own.replace(/[\s\/\-]+/g,"_"),task.cat.replace(/[\s\/\-]+/g,"_")]
-      }});
+      await jFetch("issue","POST",{fields:{project:{key:pk},summary:"["+phase.name+"] "+task.n+". "+task.t,description:{type:"doc",version:1,content:[{type:"paragraph",content:[{type:"text",text:"Owner: "+task.own+"\nTimeline: "+task.tl+"\nCategory: "+task.cat}]}]},issuetype:{name:"Task"},labels:[task.own.replace(/[\s\/]+/g,"_"),task.cat.replace(/\s+/g,"_")]}});
     }
   }
-  return{pk:pk,url:"https://"+JIRA_SITE+"/jira/software/projects/"+pk+"/boards"};
+  return{key:pk,url:"https://"+JS+"/jira/software/projects/"+pk+"/boards"};
 }
 
 function filterEmps(v){qry=v.toLowerCase();renderSidebar();}
+function goHome(){sel=null;renderSidebar();renderHome();}
 
 function renderSidebar(){
-  const el=document.getElementById("emp-list");
+  const el=document.getElementById("eml");
   const keys=Object.keys(emps).filter(id=>!qry||emps[id].name.toLowerCase().includes(qry));
-  document.getElementById("emp-count").textContent=Object.keys(emps).length;
-  if(!keys.length){el.innerHTML='<div class="empty">'+(qry?"No results":"No employees yet. Click + Add below.")+"</div>";return;}
+  document.getElementById("ecnt").textContent=Object.keys(emps).length;
+  if(!keys.length){el.innerHTML='<div class="empty">'+(qry?"No results":"No employees yet")+'</div>';return;}
   el.innerHTML=keys.map(id=>{
-    const e=emps[id],p=ovPct(e),a=pal(id);
-    return"<div class='emp-item"+(sel===id?" active":"")+"' onclick='selectEmp(\""+id+"\")'>"
-      +"<div class='av' style='background:"+a.bg+";color:"+a.c+"'>"+inits(e.name)+"</div>"
-      +"<div class='ei'><div class='en'>"+e.name+"</div><div class='er'>"+(e.role||e.type||"—")+"</div>"
-      +"<div class='mbar'><div class='mfill' style='width:"+p+"%'></div></div></div>"
-      +"<div class='epct'>"+p+"%</div></div>";
+    const e=emps[id],p=pct(e),a=pal(id);
+    return '<div class="eit'+(sel===id?" act":"")+(sel===null?" act":sel===id?" act":"")+'" onclick="selectEmp(\''+id+'\')">'
+      +'<div class="av" style="background:'+a.bg+';color:'+a.c+'">'+inits(e.name)+'</div>'
+      +'<div style="flex:1;min-width:0"><div class="en">'+e.name+'</div><div class="er">'+(e.role||e.type)+'</div>'
+      +'<div class="mb"><div class="mf" style="width:'+p+'%"></div></div></div>'
+      +'<div class="ep">'+p+'%</div></div>';
   }).join("");
 }
-
-function selectEmp(id){sel=id;if(emps[id])curCL=emps[id].type;renderSidebar();renderMain();}
 
 function renderHome(){
   const area=document.getElementById("main");
   const keys=Object.keys(emps);
-  const total=keys.length;
-  const clTypes=["Local Onboarding","International Incoming","Local Offboarding","International Outgoing"];
-
-  // Count by type
-  const byType={};
-  clTypes.forEach(t=>byType[t]=0);
-  keys.forEach(id=>{const t=emps[id].type;if(byType[t]!==undefined)byType[t]++;});
-
-  // Overall stats
+  const types=Object.keys(CL);
+  const totalEmps=keys.length;
+  const totalDone=keys.reduce((s,id)=>s+dn(emps[id]),0);
   const totalTasks=keys.reduce((s,id)=>s+tks(emps[id].type).length,0);
-  const totalDone=keys.reduce((s,id)=>s+dnCnt(emps[id],emps[id].type),0);
-  const overallPct=totalTasks?Math.round(totalDone/totalTasks*100):0;
+  const totalRem=totalTasks-totalDone;
+  const ovPct=totalTasks?Math.round(totalDone/totalTasks*100):0;
 
-  const typeColors={
-    "Local Onboarding":{bg:"#EFF6FF",c:"#1D4ED8",dot:"#2563EB"},
-    "International Incoming":{bg:"#F0FDF4",c:"#15803D",dot:"#16A34A"},
-    "Local Offboarding":{bg:"#FFF7ED",c:"#C2410C",dot:"#EA580C"},
-    "International Outgoing":{bg:"#FDF4FF",c:"#7E22CE",dot:"#9333EA"}
-  };
+  let html='<div class="hometitle">Dashboard Overview</div>'
+    +'<div class="homesub">India Operations · IMC · All employees at a glance</div>'
+    +'<div class="statgrid">'
+    +'<div class="statcard"><div class="statlbl">Total employees</div><div class="statval">'+totalEmps+'</div></div>'
+    +'<div class="statcard"><div class="statlbl">Tasks completed</div><div class="statval grn">'+totalDone+'</div></div>'
+    +'<div class="statcard"><div class="statlbl">Tasks remaining</div><div class="statval">'+totalRem+'</div></div>'
+    +'<div class="statcard"><div class="statlbl">Overall progress</div><div class="statval grn">'+ovPct+'%</div>'
+    +'<div class="statbar"><div class="statbarfill" style="width:'+ovPct+'%"></div></div></div>'
+    +'</div>';
 
-  let html="<div style='margin-bottom:24px'>"
-    +"<div style='font-size:20px;font-weight:600;color:var(--text);margin-bottom:4px'>Dashboard Overview</div>"
-    +"<div style='font-size:13px;color:var(--text2)'>India Operations · IMC · All employees at a glance</div></div>";
-
-  // Top stat cards
-  html+="<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px'>"
-    +"<div style='background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);padding:16px'>"
-    +"<div style='font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px'>Total employees</div>"
-    +"<div style='font-size:32px;font-weight:600;color:var(--text);font-family:"DM Mono",monospace'>"+total+"</div></div>"
-    +"<div style='background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);padding:16px'>"
-    +"<div style='font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px'>Tasks completed</div>"
-    +"<div style='font-size:32px;font-weight:600;color:var(--green);font-family:"DM Mono",monospace'>"+totalDone+"</div></div>"
-    +"<div style='background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);padding:16px'>"
-    +"<div style='font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px'>Tasks remaining</div>"
-    +"<div style='font-size:32px;font-weight:600;color:var(--text);font-family:"DM Mono",monospace'>"+(totalTasks-totalDone)+"</div></div>"
-    +"<div style='background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);padding:16px'>"
-    +"<div style='font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px'>Overall progress</div>"
-    +"<div style='font-size:32px;font-weight:600;color:var(--green);font-family:"DM Mono",monospace'>"+overallPct+"%</div>"
-    +"<div style='height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-top:8px'><div style='height:100%;background:var(--green);border-radius:2px;width:"+overallPct+"%'></div></div></div>"
-    +"</div>";
-
-  // By checklist type
-  html+="<div style='font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'>By checklist type</div>"
-    +"<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:24px'>";
-  clTypes.forEach(t=>{
-    const col=typeColors[t];
-    const cnt=byType[t];
-    const empKeys=keys.filter(id=>emps[id].type===t);
-    const done=empKeys.reduce((s,id)=>s+dnCnt(emps[id],t),0);
-    const tot2=empKeys.reduce((s,id)=>s+tks(t).length,0);
-    const p=tot2?Math.round(done/tot2*100):0;
-    html+="<div style='background:"+col.bg+";border:1px solid "+col.dot+"33;border-radius:var(--rl2);padding:14px'>"
-      +"<div style='font-size:12px;font-weight:600;color:"+col.c+";margin-bottom:10px'>"+t+"</div>"
-      +"<div style='font-size:28px;font-weight:700;color:"+col.c+";font-family:"DM Mono",monospace;margin-bottom:4px'>"+cnt+"</div>"
-      +"<div style='font-size:11px;color:"+col.c+";opacity:.75;margin-bottom:8px'>employee"+(cnt!==1?"s":"")+"</div>"
-      +(cnt>0?"<div style='height:3px;background:"+col.dot+"33;border-radius:2px;overflow:hidden'><div style='height:100%;background:"+col.dot+";border-radius:2px;width:"+p+"%'></div></div>"
-      +"<div style='font-size:10px;color:"+col.c+";opacity:.7;margin-top:4px'>"+p+"% tasks done</div>":"")
-      +"</div>";
+  html+='<div class="sectlbl">By checklist type</div><div class="typegrid">';
+  types.forEach(type=>{
+    const col=CL[type].col;
+    const empKeys=keys.filter(id=>emps[id].type===type);
+    const cnt=empKeys.length;
+    const d=empKeys.reduce((s,id)=>s+dn(emps[id]),0);
+    const tot=empKeys.reduce((s,id)=>s+tks(type).length,0);
+    const p=tot?Math.round(d/tot*100):0;
+    html+='<div class="typecard" style="background:'+col.bg+';border-color:'+col.dot+'44">'
+      +'<div class="typecname" style="color:'+col.c+'">'+type+'</div>'
+      +'<div class="typecval" style="color:'+col.c+'">'+cnt+'</div>'
+      +'<div class="typecmeta" style="color:'+col.c+'">employee'+(cnt!==1?'s':'')+'</div>'
+      +(cnt>0?'<div class="typecbar" style="background:'+col.dot+'33">'
+        +'<div class="typecbarfill" style="background:'+col.dot+';width:'+p+'%"></div></div>'
+        +'<div style="font-size:10px;color:'+col.c+';opacity:.7;margin-top:4px">'+p+'% tasks done</div>':'')
+      +'</div>';
   });
-  html+="</div>";
+  html+='</div>';
 
-  // Employee table
   if(keys.length>0){
-    html+="<div style='font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'>All employees</div>"
-      +"<div style='background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);overflow:hidden'>"
-      +"<table style='width:100%;border-collapse:collapse;font-size:13px'>"
-      +"<thead><tr style='background:var(--surface2)'>"
-      +"<th style='padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em'>Employee</th>"
-      +"<th style='padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em'>Type</th>"
-      +"<th style='padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em'>DOJ</th>"
-      +"<th style='padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em'>Progress</th>"
-      +"<th style='padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em'>Tasks</th>"
-      +"<th style='padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em'>Jira</th>"
-      +"</tr></thead><tbody>";
-    keys.forEach((id,i)=>{
-      const e=emps[id],a=pal(id),p=ovPct(e);
-      const d=dnCnt(e,e.type),tot3=tks(e.type).length;
-      const col=typeColors[e.type]||{bg:"#F0EEE9",c:"#6B6860"};
-      const bg=i%2===0?"var(--surface)":"var(--bg)";
-      html+="<tr style='background:"+bg+";cursor:pointer' onclick='selectEmp(""+id+"")'>"
-        +"<td style='padding:10px 14px'><div style='display:flex;align-items:center;gap:9px'>"
-        +"<div style='width:28px;height:28px;border-radius:50%;background:"+a.bg+";color:"+a.c+";display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0'>"+inits(e.name)+"</div>"
-        +"<div><div style='font-weight:500;color:var(--text)'>"+e.name+"</div>"
-        +"<div style='font-size:11px;color:var(--text3)'>"+(e.role||"—")+"</div></div></div></td>"
-        +"<td style='padding:10px 14px'><span style='font-size:11px;padding:3px 8px;border-radius:10px;background:"+col.bg+";color:"+col.c+";font-weight:500'>"+e.type.replace("International ","Intl. ")+"</span></td>"
-        +"<td style='padding:10px 14px;color:var(--text2);font-size:12px'>"+(e.doj||"—")+"</td>"
-        +"<td style='padding:10px 14px;min-width:100px'>"
-        +"<div style='display:flex;align-items:center;gap:8px'>"
-        +"<div style='flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden'><div style='height:100%;background:var(--green);border-radius:2px;width:"+p+"%'></div></div>"
-        +"<span style='font-size:11px;font-weight:600;color:var(--green);font-family:"DM Mono",monospace;min-width:28px'>"+p+"%</span></div></td>"
-        +"<td style='padding:10px 14px;font-family:"DM Mono",monospace;font-size:12px;color:var(--text2)'>"+d+"/"+tot3+"</td>"
-        +"<td style='padding:10px 14px'>"+(e.jiraUrl?"<a href='"+e.jiraUrl+"' target='_blank' style='font-size:11px;color:var(--blue);text-decoration:none;padding:3px 8px;background:var(--bl);border-radius:6px;border:1px solid #BFDBFE'>Open &#8599;</a>":"<span style='font-size:11px;color:var(--text3)'>—</span>")+"</td>"
-        +"</tr>";
+    html+='<div class="sectlbl">All employees</div>'
+      +'<div class="emptable"><table>'
+      +'<thead><tr>'
+      +'<th>Employee</th><th>Checklist type</th><th>DOJ</th><th>Progress</th><th>Tasks</th><th>Jira</th>'
+      +'</tr></thead><tbody>';
+    keys.forEach(id=>{
+      const e=emps[id],a=pal(id),p=pct(e),d=dn(e),tot=tks(e.type).length;
+      const col=CL[e.type].col;
+      html+='<tr onclick="selectEmp(\''+id+'\')">'
+        +'<td><div style="display:flex;align-items:center;gap:9px">'
+        +'<div style="width:28px;height:28px;border-radius:50%;background:'+a.bg+';color:'+a.c+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+inits(e.name)+'</div>'
+        +'<div><div style="font-weight:500">'+e.name+'</div><div style="font-size:11px;color:var(--tx3)">'+(e.role||'—')+'</div></div></div></td>'
+        +'<td><span class="typepill" style="background:'+col.bg+';color:'+col.c+'">'+type.replace("International ","Intl. ")+'</span></td>'.replace("type",e.type)
+        +'<td style="color:var(--tx2);font-size:12px">'+(e.doj||'—')+'</td>'
+        +'<td><div class="tpbar"><div class="tpbartrack"><div class="tpbarfill" style="width:'+p+'%"></div></div><span class="tppct">'+p+'%</span></div></td>'
+        +'<td style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--tx2)">'+d+'/'+tot+'</td>'
+        +'<td>'+(e.jiraUrl?'<a href="'+e.jiraUrl+'" target="_blank" class="jlnk" style="font-size:11px;padding:3px 8px;background:var(--bl);border-radius:6px;border:1px solid #BFDBFE" onclick="event.stopPropagation()">Open &#8599;</a>':'<span style="font-size:11px;color:var(--tx3)">—</span>')+'</td>'
+        +'</tr>';
     });
-    html+="</tbody></table></div>";
+    html+='</tbody></table></div>';
   } else {
-    html+="<div style='background:var(--surface);border:1px solid var(--border);border-radius:var(--rl2);padding:40px;text-align:center;color:var(--text3);font-size:13px'>No employees added yet. Click "+ Add new employee" to get started.</div>";
+    html+='<div style="background:var(--sur);border:1px solid var(--bor);border-radius:var(--rl);padding:40px;text-align:center;color:var(--tx3);font-size:13px">No employees added yet. Click &ldquo;+ Add new employee&rdquo; to get started.</div>';
   }
-
   area.innerHTML=html;
 }
 
-function renderMain(){
-  const area=document.getElementById("main");
-  if(!sel||!emps[sel]){
-    renderHome();
-    return;
-  }
-  const e=emps[sel],a=pal(sel),clKeys=Object.keys(DATA),cl=curCL;
-  const tt=tks(cl),d=dnCnt(e,cl),tot=tt.length,p=tot?Math.round(d/tot*100):0;
-  const ad=clKeys.reduce((s,k)=>s+dnCnt(e,k),0),at=clKeys.reduce((s,k)=>s+tks(k).length,0);
+function selectEmp(id){
+  sel=id;
+  renderSidebar();
+  const e=emps[id];
+  if(!e)return;
+  const a=pal(id),col=CL[e.type].col;
+  const d=dn(e),tot=tks(e.type).length,p=pct(e);
+  const phases=CL[e.type].phases;
+  const owners=[...new Set(tks(e.type).map(t=>t.own))].length;
+
   const jBtn=e.jiraUrl
-    ?"<a href='"+e.jiraUrl+"' target='_blank' class='hbtn jira'>&#11043; Open in Jira</a>"
-    :"<button class='hbtn jira' onclick='retryJira(\""+sel+"\")'>&#11043; Create Jira project</button>";
-  let html="<div class='emp-hdr'>"
-    +"<div class='hrow'>"
-    +"<div class='av-lg' style='background:"+a.bg+";color:"+a.c+"'>"+inits(e.name)+"</div>"
-    +"<div class='hinfo'><div class='hname'>"+e.name+"</div><div class='hmeta'>"+[e.role,e.dept,e.doj?"DOJ: "+e.doj:""].filter(Boolean).join(" · ")+"</div></div>"
-    +"<div class='hacts'>"+jBtn
-    +"<button class='hbtn' onclick='showEdit(\""+sel+"\")'>&#9998; Edit</button>"
-    +"<button class='hbtn danger' onclick='delEmp(\""+sel+"\")'>&#10005;</button></div></div>"
-    +"<div class='metrics'>"
-    +"<div class='met'><div class='ml'>Total tasks</div><div class='mv'>"+tks(e.type).length+"</div></div>"
-    +"<div class='met'><div class='ml'>Overall</div><div class='mv green'>"+Math.round(at?ad/at*100:0)+"%</div></div></div>"
-    +"<div class='ptrack'><div class='pbar' style='width:"+p+"%'></div></div>"
-    +"<div class='plbl'>"+e.type+": "+d+" of "+tot+" tasks completed</div></div>";
+    ?'<a href="'+e.jiraUrl+'" target="_blank" class="hbtn jira">&#11043; Open in Jira</a>'
+    :'<button class="hbtn jira" onclick="retryJira(\''+id+'\')">&#11043; Create Jira</button>';
 
-  html+="<div class='cl-tabs'>"+clKeys.map(k=>"<button class='cl-tab"+(k===cl?" active":"")+"' onclick='switchCL(\""+k+"\")'>"
-    +k.replace("International ","Intl. ")+"<span class='ctn'>"+dnCnt(e,k)+"/"+tks(k).length+"</span></button>").join("")+"</div>";
+  let html='<div class="ehdr">'
+    +'<div class="ehrow">'
+    +'<div class="avlg" style="background:'+a.bg+';color:'+a.c+'">'+inits(e.name)+'</div>'
+    +'<div><div class="ename">'+e.name+'</div><div class="emeta">'+[e.role,e.dept,e.doj?'DOJ: '+e.doj:''].filter(Boolean).join(' · ')+'</div></div>'
+    +'<div class="eacts">'
+    +'<button class="hbtn back" onclick="goHome()">&#8592; Dashboard</button>'
+    +jBtn
+    +'<button class="hbtn" onclick="showEdit(\''+id+'\')">&#9998;</button>'
+    +'<button class="hbtn danger" onclick="delEmp(\''+id+'\')">&#10005;</button>'
+    +'</div></div>'
+    +'<div class="mets">'
+    +'<div class="met"><div class="metl">Total tasks</div><div class="metv">'+tot+'</div></div>'
+    +'<div class="met"><div class="metl">Completed</div><div class="metv grn">'+d+'</div></div>'
+    +'<div class="met"><div class="metl">Remaining</div><div class="metv">'+(tot-d)+'</div></div>'
+    +'<div class="met"><div class="metl">Phases</div><div class="metv">'+phases.length+'</div></div>'
+    +'<div class="met"><div class="metl">Owners</div><div class="metv">'+owners+'</div></div>'
+    +'<div class="met"><div class="metl">Progress</div><div class="metv grn">'+p+'%</div></div>'
+    +'</div>'
+    +'<div class="ptrak"><div class="pbar" style="width:'+p+'%"></div></div>'
+    +'<div class="plbl">'+e.type+': '+d+' of '+tot+' tasks completed</div>'
+    +'</div>'
+    +'<div class="cltype" style="background:'+col.bg+';border:1px solid '+col.dot+'44;color:'+col.c+'">'
+    +'<div style="width:8px;height:8px;border-radius:50%;background:'+col.dot+'"></div>'+e.type+'</div>';
 
-  DATA[e.type].phases.forEach(phase=>{
-    const ch=e.checks[cl]||{},pd=phase.tasks.filter(t=>ch[t.id]).length,pp=phase.tasks.length?pd/phase.tasks.length*100:0;
-    html+="<div class='phase'><div class='ph'><span class='pnm'>"+phase.name+"</span>"
-      +"<div class='pp'><div class='ppf' style='width:"+pp+"%'></div></div>"
-      +"<span class='pct'>"+pd+"/"+phase.tasks.length+"</span></div>";
+  phases.forEach(phase=>{
+    const ch=e.checks||{};
+    const pd=phase.tasks.filter(t=>ch[t.id]).length;
+    const pp=phase.tasks.length?pd/phase.tasks.length*100:0;
+    html+='<div class="phase"><div class="phdr">'
+      +'<span class="phnm">'+phase.name+'</span>'
+      +'<div class="phprog"><div class="phprogf" style="width:'+pp+'%"></div></div>'
+      +'<span class="phct">'+pd+'/'+phase.tasks.length+'</span>'
+      +'</div>';
     phase.tasks.forEach(task=>{
       const isDone=!!(ch[task.id]);
-      html+="<div class='task"+(isDone?" done":"")+"' onclick='toggle(\""+sel+"\",\""+cl+"\",\""+task.id+"\")'>"
-        +"<div class='tcb'><svg class='ck' viewBox='0 0 10 8'><polyline points='1,4 3.5,7 9,1'/></svg></div>"
-        +"<div class='tb'><div class='tt'>"+task.n+". "+task.t+"</div>"
-        +"<div class='tags'><span class='tag to'>"+task.own+"</span><span class='tag tl'>"+task.tl+"</span><span class='tag tc'>"+task.cat+"</span></div></div></div>";
+      html+='<div class="task'+(isDone?' dn':'')+'" onclick="toggle(\''+id+'\',\''+task.id+'\')">'
+        +'<div class="tcb"><svg class="ck" viewBox="0 0 10 8"><polyline points="1,4 3.5,7 9,1"/></svg></div>'
+        +'<div style="flex:1;min-width:0"><div class="tt">'+task.n+'. '+task.t+'</div>'
+        +'<div class="tags"><span class="tag tago">'+task.own+'</span><span class="tag tagl">'+task.tl+'</span><span class="tag tagc">'+task.cat+'</span></div>'
+        +'</div></div>';
     });
-    html+="</div>";
+    html+='</div>';
   });
-  area.innerHTML=html;
+  document.getElementById("main").innerHTML=html;
 }
 
-function switchCL(cl){curCL=cl;renderMain();}
-function toggle(id,cl,tid){if(!emps[id])return;const ct=emps[id].type;if(!emps[id].checks[ct])emps[id].checks[ct]={};emps[id].checks[ct][tid]=!emps[id].checks[ct][tid];save();renderSidebar();renderMain();}
+function toggle(id,tid){
+  if(!emps[id])return;
+  if(!emps[id].checks)emps[id].checks={};
+  emps[id].checks[tid]=!emps[id].checks[tid];
+  save();renderSidebar();selectEmp(id);
+}
 
 async function retryJira(id){
   const e=emps[id];if(!e)return;
   try{
-    const{pk,url}=await createJiraProject(e);
-    e.jiraProjKey=pk;e.jiraUrl=url;save();
-    toast("Jira project "+pk+" created! <a href='"+url+"' target='_blank' class='jlink'>Open &#8599;</a>","success",8000);
-    renderMain();
-  }catch(err){toast("Jira error: "+err.message,"error",8000);}
+    const{key,url}=await createJira(e);
+    e.jiraProjKey=key;e.jiraUrl=url;save();
+    toast('Jira project '+key+' created! <a href="'+url+'" target="_blank" class="jlnk">Open &#8599;</a>','ok',8000);
+    selectEmp(id);
+  }catch(err){toast('Jira error: '+err.message,'err',8000);}
 }
 
 function showAdd(){
-  document.getElementById("modal-inner").innerHTML=
-    "<div class='mtitle'>Add new employee</div>"
-    +"<div class='field'><label>Full name *</label><input id='mn' placeholder='e.g. Priya Sharma'/></div>"
-    +"<div class='field'><label>Role / designation</label><input id='mr' placeholder='e.g. Analyst'/></div>"
-    +"<div class='field'><label>Department</label><input id='md' placeholder='e.g. Finance'/></div>"
-    +"<div class='field'><label>Date of joining</label><input id='mdoj' type='date'/></div>"
-    +"<div class='field'><label>Checklist type</label><select id='mt'><option>Local Onboarding</option><option>International Incoming</option><option>Local Offboarding</option><option>International Outgoing</option></select></div>"
-    +"<div class='info-box blue'>&#11043; A Jira project will be auto-created at imcfm.atlassian.net with all tasks as issues.</div>"
-    +"<div class='mbtns'><button class='mbtn' onclick='closeModal()'>Cancel</button><button class='mbtn primary' id='add-submit' onclick='addEmp()'>+ Add &amp; create Jira project</button></div>";
-  document.getElementById("modal").classList.add("open");
+  document.getElementById("modinner").innerHTML=
+    '<div class="modtitle">Add new employee</div>'
+    +'<div class="fld"><label>Full name *</label><input id="mn" placeholder="e.g. Priya Sharma"/></div>'
+    +'<div class="fld"><label>Role / designation</label><input id="mr" placeholder="e.g. Analyst"/></div>'
+    +'<div class="fld"><label>Department</label><input id="md" placeholder="e.g. Finance"/></div>'
+    +'<div class="fld"><label>Date of joining</label><input id="mdoj" type="date"/></div>'
+    +'<div class="fld"><label>Checklist type</label><select id="mt">'
+    +'<option>Local Onboarding</option><option>International Incoming</option>'
+    +'<option>Local Offboarding</option><option>International Outgoing</option>'
+    +'</select></div>'
+    +'<div class="ibox blue">&#11043; A Jira project will be created automatically at imcfm.atlassian.net with all tasks as issues.</div>'
+    +'<div class="mbtns"><button class="mbtn" onclick="closeMod()">Cancel</button>'
+    +'<button class="mbtn pri" id="addsub" onclick="addEmp()">+ Add &amp; create Jira project</button></div>';
+  document.getElementById("modal").classList.add("op");
 }
 
 function showEdit(id){
   const e=emps[id];if(!e)return;
-  document.getElementById("modal-inner").innerHTML=
-    "<div class='mtitle'>Edit employee</div>"
-    +"<div class='field'><label>Full name *</label><input id='mn' value='"+e.name+"'/></div>"
-    +"<div class='field'><label>Role / designation</label><input id='mr' value='"+(e.role||"")+"'/></div>"
-    +"<div class='field'><label>Department</label><input id='md' value='"+(e.dept||"")+"'/></div>"
-    +"<div class='field'><label>Date of joining</label><input id='mdoj' type='date' value='"+(e.doj||"")+"'/></div>"
-    +"<div class='mbtns'><button class='mbtn' onclick='closeModal()'>Cancel</button><button class='mbtn primary' onclick='saveEdit(\""+id+"\")'>Save changes</button></div>";
-  document.getElementById("modal").classList.add("open");
+  document.getElementById("modinner").innerHTML=
+    '<div class="modtitle">Edit employee</div>'
+    +'<div class="fld"><label>Full name *</label><input id="mn" value="'+e.name+'"/></div>'
+    +'<div class="fld"><label>Role / designation</label><input id="mr" value="'+(e.role||'')+'"/></div>'
+    +'<div class="fld"><label>Department</label><input id="md" value="'+(e.dept||'')+'"/></div>'
+    +'<div class="fld"><label>Date of joining</label><input id="mdoj" type="date" value="'+(e.doj||'')+'"/></div>'
+    +'<div class="mbtns"><button class="mbtn" onclick="closeMod()">Cancel</button>'
+    +'<button class="mbtn pri" onclick="saveEdit(\''+id+'\')">Save changes</button></div>';
+  document.getElementById("modal").classList.add("op");
 }
 
 async function addEmp(){
   const name=document.getElementById("mn").value.trim();if(!name)return;
-  const btn=document.getElementById("add-submit");
-  btn.disabled=true;btn.innerHTML="<span class='spin'></span> Creating Jira project...";
-  const type=document.getElementById("mt").value;
+  const btn=document.getElementById("addsub");
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Creating Jira project...';
   const id=uid();
-  const e={name:name,role:document.getElementById("mr").value.trim(),dept:document.getElementById("md").value.trim(),doj:document.getElementById("mdoj").value,type:type,checks:{},jiraProjKey:null,jiraUrl:null};
+  const e={name,role:document.getElementById("mr").value.trim(),dept:document.getElementById("md").value.trim(),doj:document.getElementById("mdoj").value,type:document.getElementById("mt").value,checks:{},jiraProjKey:null,jiraUrl:null};
   emps[id]=e;
   try{
-    const{pk,url}=await createJiraProject(e);
-    e.jiraProjKey=pk;e.jiraUrl=url;
-    toast("Jira project "+pk+" created for "+name+"! <a href='"+url+"' target='_blank' class='jlink'>Open &#8599;</a>","success",10000);
-  }catch(err){
-    toast("Employee added but Jira project failed: "+err.message,"error",8000);
-  }
-  save();closeModal();curCL=type;sel=id;renderSidebar();renderMain();
+    const{key,url}=await createJira(e);
+    e.jiraProjKey=key;e.jiraUrl=url;
+    toast('Jira project '+key+' created! <a href="'+url+'" target="_blank" class="jlnk">Open &#8599;</a>','ok',8000);
+  }catch(err){toast('Employee added but Jira failed: '+err.message,'err',8000);}
+  save();closeMod();sel=id;renderSidebar();selectEmp(id);
 }
 
 function saveEdit(id){
   const name=document.getElementById("mn").value.trim();if(!name)return;
-  Object.assign(emps[id],{name:name,role:document.getElementById("mr").value.trim(),dept:document.getElementById("md").value.trim(),doj:document.getElementById("mdoj").value});
-  save();closeModal();renderSidebar();renderMain();
+  Object.assign(emps[id],{name,role:document.getElementById("mr").value.trim(),dept:document.getElementById("md").value.trim(),doj:document.getElementById("mdoj").value});
+  save();closeMod();renderSidebar();selectEmp(id);
 }
 
 function delEmp(id){
-  if(!confirm("Remove this employee? Their Jira project will remain on imcfm.atlassian.net."))return;
-  delete emps[id];if(sel===id)sel=null;save();renderSidebar();renderMain();
+  if(!confirm('Remove this employee? Their Jira project will remain on imcfm.atlassian.net.'))return;
+  delete emps[id];if(sel===id)sel=null;save();renderSidebar();renderHome();
 }
-function closeModal(){document.getElementById("modal").classList.remove("open");}
-document.getElementById("modal").addEventListener("click",function(e){if(e.target===e.currentTarget)closeModal();});
 
-load();renderSidebar();renderMain();
+function closeMod(){document.getElementById("modal").classList.remove("op");}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target===e.currentTarget)closeMod();});
+
+load();
+renderSidebar();
+renderHome();
 </script>
 </body>
 </html>
