@@ -154,7 +154,7 @@ a.jlnk:hover{text-decoration:underline}
     <span class="nsub">· India Operations · IMC</span>
   </div>
   <div class="nright">
-    <div class="nbadge"><div class="ndot"></div>Jira connected</div>
+    <div id="jstatus" class="nbadge" style="display:none"><div class="ndot"></div>Jira connected</div>
     <button class="nibtn" onclick="goHome()" title="Dashboard home">&#8962;</button>
   </div>
 </nav>
@@ -365,7 +365,11 @@ async function createJira(e){
 }
 
 function filterEmps(v){qry=v.toLowerCase();renderSidebar();}
-function goHome(){sel=null;renderSidebar();renderHome();}
+function goHome(){
+  sel=null;
+  renderSidebar();
+  renderHome();
+}
 
 function renderSidebar(){
   const el=document.getElementById("eml");
@@ -374,7 +378,7 @@ function renderSidebar(){
   if(!keys.length){el.innerHTML='<div class="empty">'+(qry?"No results":"No employees yet")+'</div>';return;}
   el.innerHTML=keys.map(id=>{
     const e=emps[id],p=pct(e),a=pal(id);
-    return '<div class="eit'+(sel===id?" act":"")+(sel===null?" act":sel===id?" act":"")+'" onclick="selectEmp(\''+id+'\')">'
+    return '<div class="eit'+(sel===id?' act':'')+(sel===null?" act":sel===id?" act":"")+'" onclick="selectEmp(\''+id+'\')">'
       +'<div class="av" style="background:'+a.bg+';color:'+a.c+'">'+inits(e.name)+'</div>'
       +'<div style="flex:1;min-width:0"><div class="en">'+e.name+'</div><div class="er">'+(e.role||e.type)+'</div>'
       +'<div class="mb"><div class="mf" style="width:'+p+'%"></div></div></div>'
@@ -394,6 +398,7 @@ function renderHome(){
 
   let html='<div class="hometitle">Dashboard Overview</div>'
     +'<div class="homesub">India Operations · IMC · All employees at a glance</div>'
+    +(location.protocol==='file:'?'<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:11px 14px;font-size:12px;color:#92400E;margin-bottom:16px;line-height:1.6"><strong>Action needed:</strong> Jira integration requires hosting. Drag and drop this file to <a href="https://app.netlify.com/drop" target="_blank" style="color:#92400E;font-weight:600">app.netlify.com/drop</a> for a free live URL — takes 60 seconds. All other features work offline.</div>':'')
     +'<div class="statgrid">'
     +'<div class="statcard"><div class="statlbl">Total employees</div><div class="statval">'+totalEmps+'</div></div>'
     +'<div class="statcard"><div class="statlbl">Tasks completed</div><div class="statval grn">'+totalDone+'</div></div>'
@@ -467,7 +472,7 @@ function selectEmp(id){
     +'<div class="avlg" style="background:'+a.bg+';color:'+a.c+'">'+inits(e.name)+'</div>'
     +'<div><div class="ename">'+e.name+'</div><div class="emeta">'+[e.role,e.dept,e.doj?'DOJ: '+e.doj:''].filter(Boolean).join(' · ')+'</div></div>'
     +'<div class="eacts">'
-    +'<button class="hbtn back" onclick="goHome()">&#8592; Dashboard</button>'
+    +'<button class="hbtn back" onclick="goHome()" style="font-weight:500">&#8592; Back to dashboard</button>'
     +jBtn
     +'<button class="hbtn" onclick="showEdit(\''+id+'\')">&#9998;</button>'
     +'<button class="hbtn danger" onclick="delEmp(\''+id+'\')">&#10005;</button>'
@@ -567,7 +572,7 @@ async function addEmp(){
     e.jiraProjKey=key;e.jiraUrl=url;
     toast('Jira project '+key+' created! <a href="'+url+'" target="_blank" class="jlnk">Open &#8599;</a>','ok',8000);
   }catch(err){toast('Employee added but Jira failed: '+err.message,'err',8000);}
-  save();closeMod();sel=id;renderSidebar();selectEmp(id);
+  save();closeMod();sel=id;renderSidebar();selectEmp(id);renderSidebar();
 }
 
 function saveEdit(id){
@@ -587,6 +592,10 @@ document.getElementById("modal").addEventListener("click",e=>{if(e.target===e.cu
 load();
 renderSidebar();
 renderHome();
+// Show Jira badge only when hosted (not local file)
+if(location.protocol!=='file:'){
+  document.getElementById('jstatus').style.display='flex';
+}
 </script>
 </body>
 </html>
