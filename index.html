@@ -714,10 +714,14 @@ function showCommentBox(btn, empId, taskId) {
   var bubble = document.getElementById(bubbleId);
   if (bubble) {
     bubble.style.display = "flex";
+    bubble.style.alignItems = "flex-start";
     var ta = bubble.querySelector("textarea");
-    if (ta) { ta.focus(); }
+    if (ta) {
+      ta.style.width = "100%";
+      ta.focus();
+    }
   }
-  btn.style.display = "none";
+  if (btn) btn.style.display = "none";
 }
 
 function infoField(label, value) {
@@ -874,7 +878,7 @@ function showEmployee(id) {
       }
       var ownAv = avColor(assignee);
       var comment = (tm && tm[task.id] && tm[task.id].comment) ? tm[task.id].comment : '';
-      var showCommentBox = comment || dlClass === 'overdue' || dlClass === 'soon';
+      // Comment bubble is always rendered (hidden until clicked or if comment exists)
       html += '<div class="task' + (isDone ? ' done' : '') + '" data-empid="' + id + '" data-taskid="' + task.id + '">'
         + '<div class="tcb"><svg class="cksvg" viewBox="0 0 10 8"><polyline points="1,4 3.5,7 9,1"/></svg></div>'
         + '<div style="flex:1;min-width:0">'
@@ -891,12 +895,10 @@ function showEmployee(id) {
         + (deadline ? ' <input type="date" class="dl-picker" data-empid="' + id + '" data-taskid="' + task.id + '" value="' + deadline + '" title="Change deadline" style="width:0;opacity:0;position:absolute" />' : '')
         + '</span>'
         + '</div>'
-        + (showCommentBox
-            ? '<div class="' + (dlClass==='overdue'?'comment-bubble':'comment-bubble info') + '" id="cbubble_' + id + '_' + task.id + '" style="' + (comment?'':'display:none') + '" onclick="event.stopPropagation()">'
-              + '&#128172; <textarea class="task-comment" rows="2" data-empid="' + id + '" data-taskid="' + task.id + '" placeholder="Add a comment or note..." onclick="event.stopPropagation()">' + comment + '</textarea>'
-              + '</div>'
-              + (!comment ? '<button class="add-comment-btn" data-empid="' + id + '" data-taskid="' + task.id + '">+ add comment</button>' : '')
-            : '<button class="add-comment-btn" data-empid="' + id + '" data-taskid="' + task.id + '">+ add comment</button>')
+        + '<div class="comment-bubble' + (dlClass==='overdue'?' ':'  info') + '" id="cbubble_' + id + '_' + task.id + '" style="' + (comment ? '' : 'display:none') + '" onclick="event.stopPropagation()">'
+        + '<textarea class="task-comment" rows="2" data-empid="' + id + '" data-taskid="' + task.id + '" placeholder="Add a comment or note..." onclick="event.stopPropagation()">' + comment + '</textarea>'
+        + '</div>'
+        + (!comment ? '<button class="add-comment-btn" data-empid="' + id + '" data-taskid="' + task.id + '">&#128172; add comment</button>' : '')
         + '</div></div></div>';
     }
     html += '</div>';
