@@ -182,13 +182,14 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
-var TYPES = ["Local Onboarding","International Incoming","Local Offboarding","International Outgoing"];
+var TYPES = ["Local Onboarding","International Incoming","Local Offboarding","International Outgoing","Local Transfer Out"];
 
 var TYPE_COLORS = {
   "Local Onboarding":       {bg:"#EFF6FF", c:"#1D4ED8", dot:"#2563EB"},
   "International Incoming": {bg:"#F0FDF4", c:"#15803D", dot:"#16A34A"},
   "Local Offboarding":      {bg:"#FFF7ED", c:"#C2410C", dot:"#EA580C"},
-  "International Outgoing": {bg:"#FDF4FF", c:"#7E22CE", dot:"#9333EA"}
+  "International Outgoing": {bg:"#FDF4FF", c:"#7E22CE", dot:"#9333EA"},
+  "Local Transfer Out":     {bg:"#FFF0F9", c:"#9D174D", dot:"#DB2777"}
 };
 
 var AV_PAL = [
@@ -339,7 +340,30 @@ var CHECKLISTS = {
     {id:"io15",n:15,own:"Travel Desk",tl:"LWD",cat:"Egencia",t:"Discontinue the employee's India Egencia account."}
   ]}
 ]
-};
+,
+"Local Transfer Out": [
+  {phase:"Pre transfer", tasks:[
+    {id:"lt1",n:1,own:"HR Operations",tl:"On receipt from Business Leads",cat:"Communication",t:"Acknowledge transfer details and confirm with the employee and manager."},
+    {id:"lt2",n:2,own:"HR Operations",tl:"On receipt from Business Leads",cat:"Transfer Letter",t:"Draft and obtain signatures on the Transfer Letter."},
+    {id:"lt3",n:3,own:"HR Operations",tl:"On receipt from Business Leads",cat:"Workday",t:"Initiate the transfer action in Workday and update reporting line."},
+    {id:"lt4",n:4,own:"HR Operations",tl:"On receipt from Business Leads",cat:"Leaves",t:"Reconcile available leave balance before transfer date."},
+    {id:"lt5",n:5,own:"HR Operations",tl:"On receipt from Business Leads",cat:"Benefits",t:"Communicate any changes to benefits or allowances post-transfer."},
+    {id:"lt6",n:6,own:"HRBP",tl:"On receipt from Business Leads",cat:"Communication",t:"Confirm transfer with receiving team and HRBP at destination."},
+    {id:"lt7",n:7,own:"Manager",tl:"Notice period",cat:"Work Handover",t:"Ensure complete work handover to current team before transfer date."}
+  ]},
+  {phase:"Transfer day", tasks:[
+    {id:"lt8",n:8,own:"HR Operations",tl:"On transfer date",cat:"System Access",t:"Update system access and cost centre in line with new role."},
+    {id:"lt9",n:9,own:"HR Operations",tl:"On transfer date",cat:"Communication",t:"Send transfer announcement to relevant stakeholders and distribution lists."},
+    {id:"lt10",n:10,own:"IT Team",tl:"On transfer date",cat:"IT Setup",t:"Update IT access rights and team channels for the new position."},
+    {id:"lt11",n:11,own:"HR Operations",tl:"On transfer date",cat:"Connect Post",t:"Update the employee profile and post on Connect platform."}
+  ]},
+  {phase:"Post transfer", tasks:[
+    {id:"lt12",n:12,own:"HR Operations",tl:"Within 1st week",cat:"Confirmation",t:"Confirm successful transition with receiving manager and HRBP."},
+    {id:"lt13",n:13,own:"HR Operations",tl:"Within 1st month",cat:"Follow Up",t:"Conduct a 30-day check-in with the employee post transfer."},
+    {id:"lt14",n:14,own:"HR Operations",tl:"Post transfer",cat:"Workday",t:"Close all pending Workday actions related to the transfer."},
+    {id:"lt15",n:15,own:"HR Operations",tl:"Post transfer",cat:"Documentation",t:"Archive transfer documentation in the employee's Box folder."}
+  ]}
+]};
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 var emps = {};
@@ -694,6 +718,9 @@ function buildEmpInfo(e) {
     fields += infoField('Manager', e.manager);
     fields += infoField('Team', e.team);
     fields += infoField('Transfer date', e.doj);
+    fields += infoField('Transfer type', e.transferType);
+    if (e.tempEnd) fields += infoField('Assignment end date', e.tempEnd);
+    if (e.assignmentDuration) fields += infoField('Assignment duration', e.assignmentDuration);
   } else if (e.type === 'Local Offboarding') {
     fields += infoField('Last working day', e.lwd || e.doj);
     fields += infoField('Termination date', e.termDate);
@@ -704,8 +731,17 @@ function buildEmpInfo(e) {
     fields += infoField('Next manager', e.nextManager);
     fields += infoField('Next team', e.team);
     fields += infoField('Transfer date', e.doj);
+    fields += infoField('Transfer type', e.transferType);
+  } else if (e.type === 'Local Transfer Out') {
+    fields += infoField('Date of transfer', e.doj);
+    fields += infoField('Next position', e.role);
+    fields += infoField('Next manager', e.nextManager);
+    fields += infoField('Next team', e.team);
+    fields += infoField('Transfer type', e.transferType);
+    if (e.tempEnd) fields += infoField('Assignment end date', e.tempEnd);
+    if (e.assignmentDuration) fields += infoField('Assignment duration', e.assignmentDuration);
   }
-  fields += infoField('Type', e.type);
+  fields += infoField('Checklist type', e.type);
   return fields;
 }
 
@@ -921,6 +957,7 @@ function showAddModal() {
     + '<option value="International Incoming">International Incoming</option>'
     + '<option value="Local Offboarding">Local Offboarding</option>'
     + '<option value="International Outgoing">International Outgoing</option>'
+    + '<option value="Local Transfer Out">Local Transfer Out</option>'
     + '</select></div>'
     + '<div id="addFormFields"></div>'
     + '<div class="mbtns"><button class="mbtn" id="mCancel">Cancel</button>'
@@ -943,34 +980,53 @@ function renderAddForm(type) {
 
   if (type === "Local Onboarding") {
     fields = badge
-      + fld("mName", "Full name *", "text", "e.g. Priya Sharma", true)
-      + fld("mRole", "Position / designation *", "text", "e.g. Analyst", true)
-      + fld("mDept", "Department *", "text", "e.g. Finance", true)
-      + fld("mDOJ", "Date of joining *", "date", "", true);
+      + fld("mName","Full name *","text","e.g. Priya Sharma",true)
+      + fld("mRole","Position / designation *","text","e.g. Analyst",true)
+      + fld("mDept","Department *","text","e.g. Finance",true)
+      + fld("mDOJ","Date of joining *","date","",true);
 
   } else if (type === "International Incoming") {
     fields = badge
-      + fld("mName", "Full name *", "text", "e.g. Lukas Bauer", true)
-      + fld("mRole", "Position / designation *", "text", "e.g. Senior Trader", true)
-      + fld("mManager", "Manager *", "text", "e.g. Jan de Vries", true)
-      + fld("mTeam", "Team *", "text", "e.g. Equity Derivatives", true)
-      + fld("mDOJ", "Transfer date *", "date", "", true);
+      + fld("mName","Full name *","text","e.g. Lukas Bauer",true)
+      + fld("mRole","Position / designation *","text","e.g. Senior Trader",true)
+      + fld("mManager","Manager *","text","e.g. Jan de Vries",true)
+      + fld("mTeam","Team *","text","e.g. Equity Derivatives",true)
+      + fld("mDOJ","Transfer date *","date","",true)
+      + radioField("mTransferType","Transfer type *",["Temporary Transfer","Permanent Transfer"],true)
+      + '<div id="mTempEndWrap" style="display:none">'
+      + fld("mTempEnd","Temporary assignment end date *","date","",false)
+      + '<div id="mAssignDays" style="display:none;margin-top:4px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
+      + '</div>';
 
   } else if (type === "Local Offboarding") {
     fields = badge
-      + fld("mName", "Full name *", "text", "e.g. Varun Dumbre", true)
-      + fld("mLWD", "Last working day *", "date", "", true)
-      + fld("mTermDate", "Termination date *", "date", "", true)
-      + toggle("mGardenLeave", "Garden leave?", "mGardenLeaveRange", "Date range")
-      + toggle("mNonCompete", "Non-compete?", "mNonCompeteRange", "Date range");
+      + fld("mName","Full name *","text","e.g. Varun Dumbre",true)
+      + fld("mLWD","Last working day *","date","",true)
+      + fld("mTermDate","Termination date *","date","",true)
+      + toggle("mGardenLeave","Garden leave?","mGardenLeaveRange","Date range")
+      + toggle("mNonCompete","Non-compete?","mNonCompeteRange","Date range");
 
   } else if (type === "International Outgoing") {
     fields = badge
-      + fld("mName", "Full name *", "text", "e.g. Priya Sharma", true)
-      + fld("mNextRole", "Next position *", "text", "e.g. Head of Trading", true)
-      + fld("mNextManager", "Next manager *", "text", "e.g. Sarah Klein", true)
-      + fld("mNextTeam", "Next team *", "text", "e.g. Amsterdam Desk", true)
-      + fld("mDOJ", "Transfer date *", "date", "", true);
+      + fld("mName","Full name *","text","e.g. Priya Sharma",true)
+      + fld("mNextRole","Next position *","text","e.g. Head of Trading",true)
+      + fld("mNextManager","Next manager *","text","e.g. Sarah Klein",true)
+      + fld("mNextTeam","Next team *","text","e.g. Amsterdam Desk",true)
+      + fld("mDOJ","Transfer date *","date","",true)
+      + radioField("mTransferType","Transfer type *",["Return to Home Country","Transfer to Other Region"],true);
+
+  } else if (type === "Local Transfer Out") {
+    fields = badge
+      + fld("mName","Full name *","text","e.g. Priya Sharma",true)
+      + fld("mDOJ","Date of transfer *","date","",true)
+      + fld("mNextRole","Next position *","text","e.g. Senior Analyst",true)
+      + fld("mNextManager","Next manager *","text","e.g. Raj Mehta",true)
+      + fld("mNextTeam","Next team *","text","e.g. Mumbai Desk",true)
+      + radioField("mTransferType","Transfer type *",["Temporary","Permanent"],true)
+      + '<div id="mTempEndWrap" style="display:none">'
+      + fld("mTempEnd","Temporary assignment end date *","date","",false)
+      + '<div id="mAssignDays" style="display:none;margin-top:4px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
+      + '</div>';
   }
 
   container.innerHTML = fields;
@@ -990,6 +1046,54 @@ function renderAddForm(type) {
     if (fromEl) fromEl.addEventListener("change", function(){ calcDays(rangeId); });
     if (toEl)   toEl.addEventListener("change",   function(){ calcDays(rangeId); });
   });
+
+  // Wire transfer type radio for temporary end date
+  var radios = document.querySelectorAll("input[name='mTransferType']");
+  for (var ri = 0; ri < radios.length; ri++) {
+    radios[ri].addEventListener("change", function() {
+      var wrap = document.getElementById("mTempEndWrap");
+      if (!wrap) return;
+      var isTemp = this.value === "Temporary Transfer" || this.value === "Temporary";
+      wrap.style.display = isTemp ? "block" : "none";
+      // Wire end date calc
+      if (isTemp) {
+        var startDate = document.getElementById("mDOJ") ? document.getElementById("mDOJ").value : "";
+        var endEl = document.getElementById("mTempEnd");
+        if (endEl) endEl.addEventListener("change", function() {
+          calcAssignmentDuration(startDate || (document.getElementById("mDOJ") ? document.getElementById("mDOJ").value : ""), this.value);
+        });
+      }
+    });
+  }
+}
+
+function radioField(id, label, options, required) {
+  var html = '<div class="fld"><label style="display:block;font-size:12px;font-weight:500;color:#6B6860;margin-bottom:6px">' + label + '</label>';
+  html += '<div style="display:flex;gap:12px;flex-wrap:wrap">';
+  options.forEach(function(opt) {
+    html += '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#1A1917;cursor:pointer;padding:7px 11px;border:1px solid #E4E1DA;border-radius:8px">'
+      + '<input type="radio" name="' + id + '" value="' + opt + '" style="cursor:pointer"/> ' + opt + '</label>';
+      + '<input type="radio" name="' + id + '" value="' + opt + '" style="cursor:pointer"/> ' + opt + '</label>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function calcAssignmentDuration(startDate, endDate) {
+  var daysEl = document.getElementById("mAssignDays");
+  if (!daysEl) return;
+  if (!startDate || !endDate) { daysEl.style.display = "none"; return; }
+  var d1 = new Date(startDate), d2 = new Date(endDate);
+  var days = Math.round((d2 - d1) / 86400000);
+  var months = Math.round(days / 30.44);
+  daysEl.style.display = "block";
+  if (days < 0) {
+    daysEl.style.background = "#FEF2F2"; daysEl.style.color = "#DC2626";
+    daysEl.textContent = "⚠ End date is before transfer date";
+  } else {
+    daysEl.style.background = "#E1F5EE"; daysEl.style.color = "#065F46";
+    daysEl.textContent = "✓ Assignment duration: " + days + " days (" + months + " month" + (months!==1?"s":"") + ")";
+  }
 }
 
 function fld(id, label, type, placeholder, required) {
@@ -1051,7 +1155,7 @@ function addEmp() {
   var type = document.getElementById("mTypeSelect").value;
   if (!type) { alert("Please select a checklist type."); return; }
 
-  // Validate all required fields
+  // Validate required fields
   var reqFields = document.querySelectorAll("[data-required='true']");
   var missing = [];
   for (var ri = 0; ri < reqFields.length; ri++) {
@@ -1059,34 +1163,88 @@ function addEmp() {
     rf.style.borderColor = "";
     if (!rf.value.trim()) {
       rf.style.borderColor = "#DC2626";
-      rf.style.outline = "none";
       var lbl = rf.parentElement ? rf.parentElement.querySelector("label") : null;
       missing.push(lbl ? lbl.textContent.replace("*","").trim() : rf.id);
     }
   }
+
+  // Validate radio groups
+  var radioGroups = {};
+  var allRadios = document.querySelectorAll("input[type='radio']");
+  for (var rr = 0; rr < allRadios.length; rr++) {
+    var name = allRadios[rr].name;
+    if (!radioGroups[name]) radioGroups[name] = false;
+    if (allRadios[rr].checked) radioGroups[name] = true;
+  }
+  for (var grp in radioGroups) {
+    if (!radioGroups[grp]) missing.push("Transfer type");
+  }
+
+  // Validate temp end date if Temporary selected
+  var selectedRadio = document.querySelector("input[name='mTransferType']:checked");
+  var isTemp = selectedRadio && (selectedRadio.value === "Temporary Transfer" || selectedRadio.value === "Temporary");
+  if (isTemp) {
+    var tempEnd = document.getElementById("mTempEnd");
+    if (tempEnd && !tempEnd.value) {
+      tempEnd.style.borderColor = "#DC2626";
+      missing.push("Temporary assignment end date");
+    }
+  }
+
   if (missing.length > 0) {
-    alert("Please fill in required fields:\n• " + missing.join("\n• "));
+    alert("Please fill in required fields:\n\u2022 " + missing.filter(function(v,i,a){return a.indexOf(v)===i;}).join("\n\u2022 "));
     return;
   }
 
   var nameEl = document.getElementById("mName");
   var name = nameEl ? nameEl.value.trim() : "";
   if (!name) { alert("Please enter a name."); return; }
+
   var id = genId();
   var e = { name: name, type: type, checks: {}, taskMeta: {} };
+
+  // Get transfer type
+  var transferTypeEl = document.querySelector("input[name='mTransferType']:checked");
+  var transferType = transferTypeEl ? transferTypeEl.value : "";
+
   if (type === "Local Onboarding") {
     e.role = val("mRole"); e.dept = val("mDept"); e.doj = val("mDOJ");
+
   } else if (type === "International Incoming") {
-    e.role = val("mRole"); e.manager = val("mManager"); e.team = val("mTeam"); e.doj = val("mDOJ"); e.dept = e.team;
+    e.role = val("mRole"); e.manager = val("mManager"); e.team = val("mTeam");
+    e.doj = val("mDOJ"); e.dept = e.team;
+    e.transferType = transferType;
+    if (isTemp) {
+      e.tempEnd = val("mTempEnd");
+      var d1 = new Date(e.doj), d2 = new Date(e.tempEnd);
+      var days = Math.round((d2-d1)/86400000);
+      e.assignmentDuration = days + " days (" + Math.round(days/30.44) + " months)";
+    }
+
   } else if (type === "Local Offboarding") {
     e.lwd = val("mLWD"); e.doj = e.lwd; e.termDate = val("mTermDate");
     var glEl = document.getElementById("mGardenLeave");
     var ncEl = document.getElementById("mNonCompete");
     e.gardenLeave = (glEl && glEl.checked) ? (val("mGardenLeaveRange") || "Yes") : "No";
     e.nonCompete  = (ncEl && ncEl.checked) ? (val("mNonCompeteRange")  || "Yes") : "No";
+
   } else if (type === "International Outgoing") {
-    e.role = val("mNextRole"); e.nextManager = val("mNextManager"); e.team = val("mNextTeam"); e.dept = e.team; e.doj = val("mDOJ");
+    e.role = val("mNextRole"); e.nextManager = val("mNextManager");
+    e.team = val("mNextTeam"); e.dept = e.team; e.doj = val("mDOJ");
+    e.transferType = transferType;
+
+  } else if (type === "Local Transfer Out") {
+    e.doj = val("mDOJ"); e.role = val("mNextRole");
+    e.nextManager = val("mNextManager"); e.team = val("mNextTeam"); e.dept = e.team;
+    e.transferType = transferType;
+    if (isTemp) {
+      e.tempEnd = val("mTempEnd");
+      var d1b = new Date(e.doj), d2b = new Date(e.tempEnd);
+      var daysb = Math.round((d2b-d1b)/86400000);
+      e.assignmentDuration = daysb + " days (" + Math.round(daysb/30.44) + " months)";
+    }
   }
+
   emps[id] = e;
   saveData();
   closeModal();
