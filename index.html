@@ -49,7 +49,7 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
 .statpfill{height:100%;background:#1D9E75;border-radius:2px}
 .sectlbl{font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
 .typegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
-.typecard{border-radius:14px;padding:14px;border:1px solid transparent}
+.typecard{border-radius:14px;padding:14px;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s}.typecard:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
 .tcname{font-size:12px;font-weight:600;margin-bottom:8px}
 .tcval{font-size:24px;font-weight:700;font-family:'DM Mono',monospace;margin-bottom:2px}
 .tcmeta{font-size:11px;opacity:.7;margin-bottom:8px}
@@ -441,6 +441,70 @@ function renderSidebar() {
 }
 
 // ── HOME ─────────────────────────────────────────────────────────────────────
+function showFilteredType(type) {
+  selectedId = null;
+  renderSidebar();
+  var col = TYPE_COLORS[type];
+  var ids = Object.keys(emps).filter(function(id){ return emps[id].type === type; });
+  var d = ids.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
+  var tot = ids.reduce(function(s,id){ return s + allTasks(type).length; }, 0);
+  var p = tot ? Math.round(d / tot * 100) : 0;
+
+  var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+    + '<button class="hbtn back" id="backToHome">&larr; Back to dashboard</button>'
+    + '<div class="clbadge" style="background:' + col.bg + ';border:1px solid ' + col.dot + '44;color:' + col.c + ';margin-bottom:0">'
+    + '<div class="clbadgedot" style="background:' + col.dot + '"></div>' + type + '</div>'
+    + '</div>'
+    + '<div class="hsub" style="margin-bottom:18px">' + ids.length + ' employee' + (ids.length !== 1 ? 's' : '') + ' &middot; ' + d + ' of ' + tot + ' tasks completed &middot; ' + p + '% overall progress</div>';
+
+  // Stats row
+  html += '<div class="statgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">'
+    + '<div class="statcard"><div class="statlbl">Employees</div><div class="statval">' + ids.length + '</div></div>'
+    + '<div class="statcard"><div class="statlbl">Tasks completed</div><div class="statval g">' + d + '</div></div>'
+    + '<div class="statcard"><div class="statlbl">Tasks remaining</div><div class="statval">' + (tot - d) + '</div></div>'
+    + '<div class="statcard"><div class="statlbl">Progress</div><div class="statval g">' + p + '%'
+    + '<div class="statpbar"><div class="statpfill" style="width:' + p + '%"></div></div></div></div>'
+    + '</div>';
+
+  if (ids.length === 0) {
+    html += '<div class="emptystate">No employees added under ' + type + ' yet.</div>';
+  } else {
+    html += '<div class="sectlbl">Employees — ' + type + '</div>'
+      + '<div class="etable"><table>'
+      + '<thead><tr><th>Employee</th><th>Role</th><th>DOJ</th><th>Progress</th><th>Tasks</th></tr></thead>'
+      + '<tbody>';
+    for (var r = 0; r < ids.length; r++) {
+      var rid = ids[r];
+      var re = emps[rid];
+      var ra = avColor(rid);
+      var rp = pct(re);
+      var rd = doneCount(re);
+      var rtot = allTasks(re.type).length;
+      html += '<tr data-id="' + rid + '">'
+        + '<td><div style="display:flex;align-items:center;gap:9px">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:' + ra.bg + ';color:' + ra.c + ';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">' + initials(re.name) + '</div>'
+        + '<div><div style="font-weight:500">' + re.name + '</div></div></div></td>'
+        + '<td style="color:#6B6860;font-size:12px">' + (re.role || '—') + '</td>'
+        + '<td style="color:#6B6860;font-size:12px">' + (re.doj || '—') + '</td>'
+        + '<td><div class="tprow"><div class="tptrack"><div class="tpfill" style="width:' + rp + '%"></div></div><span class="tppct">' + rp + '%</span></div></td>'
+        + '<td style="font-family:'DM Mono',monospace;font-size:12px;color:#6B6860">' + rd + '/' + rtot + '</td>'
+        + '</tr>';
+    }
+    html += '</tbody></table></div>';
+  }
+
+  document.getElementById("mainArea").innerHTML = html;
+
+  document.getElementById("backToHome").addEventListener("click", function(){ showHome(); });
+
+  var rows = document.querySelectorAll(".etable tbody tr");
+  for (var rr = 0; rr < rows.length; rr++) {
+    rows[rr].addEventListener("click", function(){
+      showEmployee(this.getAttribute("data-id"));
+    });
+  }
+}
+
 function showHome() {
   selectedId = null;
   renderSidebar();
@@ -476,12 +540,13 @@ function showHome() {
       tot += allTasks(type).length;
     }
     var tp = tot ? Math.round(d / tot * 100) : 0;
-    html += '<div class="typecard" style="background:' + col.bg + ';border-color:' + col.dot + '44">'
+    html += '<div class="typecard" data-type="' + type + '" style="background:' + col.bg + ';border-color:' + col.dot + '44">'
       + '<div class="tcname" style="color:' + col.c + '">' + type + '</div>'
       + '<div class="tcval" style="color:' + col.c + '">' + cnt + '</div>'
       + '<div class="tcmeta" style="color:' + col.c + '">employee' + (cnt !== 1 ? 's' : '') + '</div>'
       + (cnt > 0 ? '<div class="tcbar" style="background:' + col.dot + '33"><div class="tcbarfill" style="background:' + col.dot + ';width:' + tp + '%"></div></div>'
         + '<div style="font-size:10px;color:' + col.c + ';opacity:.7;margin-top:4px">' + tp + '% tasks done</div>' : '')
+      + '<div style="font-size:10px;color:' + col.c + ';opacity:.6;margin-top:6px;font-weight:600">View employees &rarr;</div>'
       + '</div>';
   }
   html += '</div>';
@@ -522,6 +587,13 @@ function showHome() {
   for (var rr = 0; rr < rows.length; rr++) {
     rows[rr].addEventListener("click", function(){
       showEmployee(this.getAttribute("data-id"));
+    });
+  }
+  // wire typecard clicks
+  var cards = document.querySelectorAll(".typecard[data-type]");
+  for (var cc = 0; cc < cards.length; cc++) {
+    cards[cc].addEventListener("click", function(){
+      showFilteredType(this.getAttribute("data-type"));
     });
   }
 }
