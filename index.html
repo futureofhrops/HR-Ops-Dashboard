@@ -738,6 +738,7 @@ function buildEmpInfo(e) {
     fields += infoField('Next manager', e.nextManager);
     fields += infoField('Next team', e.team);
     fields += infoField('Transfer type', e.transferType);
+    if (e.toRegion) fields += infoField('Transfer to', e.toRegion);
     if (e.tempEnd) fields += infoField('Assignment end date', e.tempEnd);
     if (e.assignmentDuration) fields += infoField('Assignment duration', e.assignmentDuration);
   }
@@ -992,14 +993,10 @@ function renderAddForm(type) {
       + fld("mManager","Manager *","text","e.g. Jan de Vries",true)
       + fld("mTeam","Team *","text","e.g. Equity Derivatives",true)
       + fld("mDOJ","Transfer date *","date","",true)
-      + radioFieldWithText("mTransferType","Transfer type *",[
-          {value:"Temporary Transfer", textId:"mTransferRegionII1", placeholder:"e.g. Netherlands, Amsterdam"},
-          {value:"Permanent Transfer", textId:"mTransferRegionII2", placeholder:"e.g. Germany, Frankfurt"}
-        ],true)
-      + '<div id="mTempEndWrap" style="display:none">'
-      + fld("mTempEnd","Temporary assignment end date *","date","",false)
-      + '<div id="mAssignDays" style="display:none;margin-top:4px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
-      + '</div>';
+      + radioFieldWithTextAndDate("mTransferType","Transfer type *",[
+          {value:"Temporary Transfer", textId:"mTransferRegionII1", placeholder:"e.g. Netherlands, Amsterdam", hasDate:true},
+          {value:"Permanent Transfer", textId:"mTransferRegionII2", placeholder:"e.g. Germany, Frankfurt", hasDate:false}
+        ],true);
 
   } else if (type === "Local Offboarding") {
     fields = badge
@@ -1028,11 +1025,10 @@ function renderAddForm(type) {
       + fld("mNextRole","Next position *","text","e.g. Senior Analyst",true)
       + fld("mNextManager","Next manager *","text","e.g. Raj Mehta",true)
       + fld("mNextTeam","Next team *","text","e.g. Mumbai Desk",true)
-      + radioField("mTransferType","Transfer type *",["Temporary","Permanent"],true)
-      + '<div id="mTempEndWrap" style="display:none">'
-      + fld("mTempEnd","Temporary assignment end date *","date","",false)
-      + '<div id="mAssignDays" style="display:none;margin-top:4px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
-      + '</div>';
+      + radioFieldWithTextAndDate("mTransferType","Transfer type *",[
+          {value:"Temporary", textId:"mTransferRegionLTO1", placeholder:"e.g. Mumbai Desk, India", hasDate:true},
+          {value:"Permanent", textId:"mTransferRegionLTO2", placeholder:"e.g. Delhi Office, India", hasDate:false}
+        ],true);
   }
 
   container.innerHTML = fields;
@@ -1058,7 +1054,7 @@ function renderAddForm(type) {
   for (var ri = 0; ri < radios.length; ri++) {
     radios[ri].addEventListener("change", function() {
       // Hide all region text wraps first
-      var allWraps = ["mTransferRegion1Wrap","mTransferRegion2Wrap","mTransferRegionII1Wrap","mTransferRegionII2Wrap"];
+      var allWraps = ["mTransferRegion1Wrap","mTransferRegion2Wrap","mTransferRegionII1Wrap","mTransferRegionII2Wrap","mTransferRegionLTO1Wrap","mTransferRegionLTO2Wrap"];
       allWraps.forEach(function(wid) {
         var w = document.getElementById(wid);
         if (w) w.style.display = "none";
@@ -1071,16 +1067,17 @@ function renderAddForm(type) {
         if (textWrap) textWrap.style.display = "block";
       }
 
-      // Show temp end date for temporary transfers
-      var wrap = document.getElementById("mTempEndWrap");
-      if (!wrap) return;
+      // Show temp end date for temporary transfers (mTempEndWrap may be inside option)
       var isTemp = this.value === "Temporary Transfer" || this.value === "Temporary";
-      wrap.style.display = isTemp ? "block" : "none";
-      if (isTemp) {
-        var startDate = document.getElementById("mDOJ") ? document.getElementById("mDOJ").value : "";
-        var endEl = document.getElementById("mTempEnd");
-        if (endEl) endEl.addEventListener("change", function() {
-          calcAssignmentDuration(startDate || (document.getElementById("mDOJ") ? document.getElementById("mDOJ").value : ""), this.value);
+      var wrap = document.getElementById("mTempEndWrap");
+      if (wrap) wrap.style.display = isTemp ? "block" : "none";
+      // For radioFieldWithTextAndDate, the date is always shown when option is selected
+      // Wire end date calc
+      var endEl = document.getElementById("mTempEnd");
+      if (endEl && isTemp) {
+        endEl.addEventListener("change", function() {
+          var startDate = document.getElementById("mDOJ") ? document.getElementById("mDOJ").value : "";
+          calcAssignmentDuration(startDate, this.value);
         });
       }
     });
@@ -1112,6 +1109,51 @@ function radioFieldWithText(id, label, options, required) {
       + '<input id="' + opt.textId + '" type="text" placeholder="' + opt.placeholder + '" style="width:100%;padding:7px 10px;border:1px solid #E4E1DA;border-radius:8px;font-family:DM Sans,sans-serif;font-size:12px"/>'
       + '<div style="font-size:11px;color:#9E9B94;margin-top:3px">Enter the region / country you are transferring from or to</div>'
       + '</div></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function radioFieldWithTextAndDate(id, label, options, required) {
+  var html = '<div class="fld"><label style="display:block;font-size:12px;font-weight:500;color:#6B6860;margin-bottom:6px">' + label + '</label>';
+  html += '<div style="display:flex;flex-direction:column;gap:0">';
+  options.forEach(function(opt) {
+    html += '<div style="margin-bottom:8px">'
+      + '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:500;color:#1A1917;cursor:pointer;padding:8px 12px;border:1px solid #E4E1DA;border-radius:8px;width:100%">'
+      + '<span>' + opt.value + '</span>'
+      + '<input type="radio" name="' + id + '" value="' + opt.value + '" data-textid="' + opt.textId + '" style="cursor:pointer;flex-shrink:0;width:15px;height:15px"/>'
+      + '</label>'
+      + '<div id="' + opt.textId + 'Wrap" style="display:none;margin-top:4px">'
+      + '<input id="' + opt.textId + '" type="text" placeholder="' + opt.placeholder + '" style="width:100%;padding:7px 10px;border:1px solid #E4E1DA;border-radius:8px;font-family:DM Sans,sans-serif;font-size:12px;margin-bottom:4px"/>'
+      + '<div style="font-size:11px;color:#9E9B94;margin-bottom:8px">Enter the region / country you are transferring from or to</div>'
+      + (opt.hasDate
+          ? '<div style="font-size:12px;font-weight:500;color:#6B6860;margin-bottom:4px">Temporary assignment end date *</div>'
+          + '<input id="mTempEnd" type="date" style="width:100%;padding:7px 10px;border:1px solid #E4E1DA;border-radius:8px;font-family:DM Sans,sans-serif;font-size:12px"/>'
+          + '<div id="mAssignDays" style="display:none;margin-top:6px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
+          : '')
+      + '</div></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function radioFieldWithDate(id, label, options, required) {
+  var html = '<div class="fld"><label style="display:block;font-size:12px;font-weight:500;color:#6B6860;margin-bottom:6px">' + label + '</label>';
+  html += '<div style="display:flex;flex-direction:column;gap:0">';
+  options.forEach(function(opt) {
+    html += '<div style="margin-bottom:8px">'
+      + '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:500;color:#1A1917;cursor:pointer;padding:8px 12px;border:1px solid #E4E1DA;border-radius:8px;width:100%">'
+      + '<span>' + opt.value + '</span>'
+      + '<input type="radio" name="' + id + '" value="' + opt.value + '" style="cursor:pointer;flex-shrink:0;width:15px;height:15px"/>'
+      + '</label>'
+      + (opt.hasDate
+          ? '<div id="mTempEndWrap" style="display:none;margin-top:4px">'
+          + '<div style="font-size:12px;font-weight:500;color:#6B6860;margin-bottom:4px">Temporary assignment end date *</div>'
+          + '<input id="mTempEnd" type="date" style="width:100%;padding:7px 10px;border:1px solid #E4E1DA;border-radius:8px;font-family:DM Sans,sans-serif;font-size:12px"/>'
+          + '<div id="mAssignDays" style="display:none;margin-top:6px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
+          + '</div>'
+          : '')
+      + '</div>';
   });
   html += '</div></div>';
   return html;
@@ -1293,6 +1335,15 @@ function addEmp() {
     e.doj = val("mDOJ"); e.role = val("mNextRole");
     e.nextManager = val("mNextManager"); e.team = val("mNextTeam"); e.dept = e.team;
     e.transferType = transferType;
+    if (transferType === "Temporary") {
+      var ltoRegion1 = val("mTransferRegionLTO1");
+      if (ltoRegion1) e.toRegion = ltoRegion1;
+      e.transferType = "Temporary" + (ltoRegion1 ? " — " + ltoRegion1 : "");
+    } else if (transferType === "Permanent") {
+      var ltoRegion2 = val("mTransferRegionLTO2");
+      if (ltoRegion2) e.toRegion = ltoRegion2;
+      e.transferType = "Permanent" + (ltoRegion2 ? " — " + ltoRegion2 : "");
+    }
     if (isTemp) {
       e.tempEnd = val("mTempEnd");
       var d1b = new Date(e.doj), d2b = new Date(e.tempEnd);
