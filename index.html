@@ -144,6 +144,7 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
 .assign-input{border:none;background:transparent;font-family:DM Sans,sans-serif;font-size:11px;color:#1A1917;font-weight:600;outline:none;width:90px;cursor:pointer}
 .assign-input::placeholder{color:#9E9B94;font-weight:400}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -153,7 +154,11 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
     <span class="ntitle">HR Ops Dashboard</span>
     <span class="nsub">· India Operations · IMC</span>
   </div>
-  <button class="homebtn" id="homeNavBtn" title="Go to dashboard">⌂</button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="homebtn" id="exportBtn" title="Export to Excel" style="width:auto;padding:0 12px;font-size:12px;font-weight:500;gap:5px;display:flex;align-items:center">&#8681; Export Excel</button>
+    <button class="homebtn" id="homeNavBtn" title="Go to dashboard">&#8962;</button>
+  </div>
+    <button class="homebtn" id="exportBtn" title="Export to Excel" style="font-size:13px;font-weight:600;width:auto;padding:0 12px;gap:5px;display:flex;align-items:center">&#8659; Export</button>
 </nav>
 
 <div class="layout">
@@ -868,12 +873,279 @@ function showEditModal(id) {
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
+// ── EXPORT TO EXCEL ──────────────────────────────────────────────────────────
+function exportToExcel() {
+  var wb = XLSX.utils.book_new();
+  var ids = Object.keys(emps);
+
+  if (ids.length === 0) {
+    alert("No employee data to export.");
+    return;
+  }
+
+  // ── Sheet 1: Employee Summary ─────────────────────────────────────────────
+  var summaryData = [["Employee Name","Role","Department","Date of Joining","Checklist Type","Total Tasks","Completed","Remaining","Progress %"]];
+  for (var i = 0; i < ids.length; i++) {
+    var e = emps[ids[i]];
+    var d = doneCount(e);
+    var tot = allTasks(e.type).length;
+    summaryData.push([
+      e.name,
+      e.role || "—",
+      e.dept || "—",
+      e.doj || "—",
+      e.type,
+      tot,
+      d,
+      tot - d,
+      Math.round(tot ? d / tot * 100 : 0) + "%"
+    ]);
+  }
+  var wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+  wsSummary["!cols"] = [{wch:22},{wch:18},{wch:16},{wch:14},{wch:24},{wch:12},{wch:12},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, "Employee Summary");
+
+  // ── Sheet 2: Task Detail (all employees x all tasks) ──────────────────────
+  var taskData = [["Employee","Checklist Type","Phase","Task #","Task Description","Owner","Assigned To","Timeline","Category","Status","Deadline"]];
+  for (var ei = 0; ei < ids.length; ei++) {
+    var emp = emps[ids[ei]];
+    var phases = CHECKLISTS[emp.type];
+    var ch = emp.checks || {};
+    var tm = emp.taskMeta || {};
+    for (var pi = 0; pi < phases.length; pi++) {
+      var phase = phases[pi];
+      for (var ti = 0; ti < phase.tasks.length; ti++) {
+        var task = phase.tasks[ti];
+        var meta = tm[task.id] || {};
+        taskData.push([
+          emp.name,
+          emp.type,
+          phase.phase,
+          task.n,
+          task.t,
+          task.own,
+          meta.assignee || task.own,
+          task.tl,
+          task.cat,
+          ch[task.id] ? "Completed" : "Pending",
+          meta.deadline || "—"
+        ]);
+      }
+    }
+  }
+  var wsTask = XLSX.utils.aoa_to_sheet(taskData);
+  wsTask["!cols"] = [{wch:20},{wch:22},{wch:24},{wch:8},{wch:55},{wch:18},{wch:18},{wch:22},{wch:18},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsTask, "Task Details");
+
+  // ── Sheet 3: Progress by Checklist Type ───────────────────────────────────
+  var typeData = [["Checklist Type","Total Employees","Tasks Completed","Tasks Remaining","Progress %"]];
+  for (var t = 0; t < TYPES.length; t++) {
+    var type = TYPES[t];
+    var empIds = ids.filter(function(id){ return emps[id].type === type; });
+    var td = empIds.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
+    var tt = empIds.reduce(function(s,id){ return s + allTasks(type).length; }, 0);
+    typeData.push([
+      type,
+      empIds.length,
+      td,
+      tt - td,
+      Math.round(tt ? td / tt * 100 : 0) + "%"
+    ]);
+  }
+  var wsType = XLSX.utils.aoa_to_sheet(typeData);
+  wsType["!cols"] = [{wch:26},{wch:18},{wch:18},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsType, "By Checklist Type");
+
+  // ── Sheet 4: Overdue & Upcoming Deadlines ─────────────────────────────────
+  var deadlineData = [["Employee","Task","Assigned To","Deadline","Days Overdue / Remaining","Status"]];
+  var today = new Date(); today.setHours(0,0,0,0);
+  for (var di = 0; di < ids.length; di++) {
+    var demp = emps[ids[di]];
+    var dch = demp.checks || {};
+    var dtm = demp.taskMeta || {};
+    var dphases = CHECKLISTS[demp.type];
+    for (var dpi = 0; dpi < dphases.length; dpi++) {
+      for (var dti = 0; dti < dphases[dpi].tasks.length; dti++) {
+        var dtask = dphases[dpi].tasks[dti];
+        var dmeta = dtm[dtask.id] || {};
+        if (dmeta.deadline) {
+          var dlDate = new Date(dmeta.deadline);
+          var diff = Math.round((dlDate - today) / 86400000);
+          var status = dch[dtask.id] ? "Completed" : diff < 0 ? "Overdue" : diff === 0 ? "Due today" : diff <= 3 ? "Due soon" : "On track";
+          if (!dch[dtask.id]) { // Only pending tasks
+            deadlineData.push([
+              demp.name,
+              dtask.n + ". " + dtask.t,
+              dmeta.assignee || dtask.own,
+              dmeta.deadline,
+              diff < 0 ? Math.abs(diff) + " days overdue" : diff + " days remaining",
+              status
+            ]);
+          }
+        }
+      }
+    }
+  }
+  if (deadlineData.length > 1) {
+    var wsDeadline = XLSX.utils.aoa_to_sheet(deadlineData);
+    wsDeadline["!cols"] = [{wch:20},{wch:55},{wch:18},{wch:14},{wch:22},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsDeadline, "Deadlines");
+  }
+
+  // ── Download ──────────────────────────────────────────────────────────────
+  var today2 = new Date();
+  var dateStr = today2.getFullYear() + "-" + String(today2.getMonth()+1).padStart(2,"0") + "-" + String(today2.getDate()).padStart(2,"0");
+  XLSX.writeFile(wb, "IMC_HR_Dashboard_" + dateStr + ".xlsx");
+  showToast("Excel file downloaded successfully!", "ok");
+}
+
 document.getElementById("homeNavBtn").addEventListener("click", showHome);
+document.getElementById("exportBtn").addEventListener("click", exportToExcel);
 document.getElementById("addBtn").addEventListener("click", showAddModal);
 document.getElementById("searchBox").addEventListener("input", renderSidebar);
+document.getElementById("exportBtn").addEventListener("click", exportToExcel);
 document.getElementById("modal").addEventListener("click", function(e){
   if (e.target === this) closeModal();
 });
+
+function exportToExcel() {
+  if (typeof XLSX === 'undefined') {
+    alert('Export library not loaded. Please check your internet connection.');
+    return;
+  }
+
+  var wb = XLSX.utils.book_new();
+  var ids = Object.keys(emps);
+
+  // ── SHEET 1: Dashboard Summary ────────────────────────────────────────────
+  var totalDone = ids.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
+  var totalTasks = ids.reduce(function(s,id){ return s + allTasks(emps[id].type).length; }, 0);
+  var ovPct = totalTasks ? Math.round(totalDone/totalTasks*100) : 0;
+
+  var dash = [
+    ["IMC HR Ops Dashboard — Export"],
+    ["Generated on", new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})],
+    [""],
+    ["OVERALL SUMMARY"],
+    ["Total Employees", ids.length],
+    ["Tasks Completed", totalDone],
+    ["Tasks Remaining", totalTasks - totalDone],
+    ["Overall Progress", ovPct + "%"],
+    [""],
+    ["BY CHECKLIST TYPE"],
+    ["Type", "Employees", "Tasks Completed", "Tasks Remaining", "Progress %"]
+  ];
+  TYPES.forEach(function(type) {
+    var typeIds = ids.filter(function(id){ return emps[id].type === type; });
+    var d = typeIds.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
+    var tot = typeIds.reduce(function(s,id){ return s + allTasks(type).length; }, 0);
+    var p = tot ? Math.round(d/tot*100) : 0;
+    dash.push([type, typeIds.length, d, tot-d, p+"%"]);
+  });
+  var ws1 = XLSX.utils.aoa_to_sheet(dash);
+  ws1['!cols'] = [{wch:35},{wch:15},{wch:18},{wch:18},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws1, "Dashboard Summary");
+
+  // ── SHEET 2: All Employees ────────────────────────────────────────────────
+  var empRows = [["Name","Role","Department","Date of Joining","Checklist Type","Tasks Done","Total Tasks","Progress %","Status"]];
+  ids.forEach(function(id) {
+    var e = emps[id];
+    var d = doneCount(e);
+    var tot = allTasks(e.type).length;
+    var p = tot ? Math.round(d/tot*100) : 0;
+    var status = p === 100 ? "Completed" : p > 0 ? "In Progress" : "Not Started";
+    empRows.push([e.name, e.role||"", e.dept||"", e.doj||"", e.type, d, tot, p+"%", status]);
+  });
+  var ws2 = XLSX.utils.aoa_to_sheet(empRows);
+  ws2['!cols'] = [{wch:20},{wch:18},{wch:16},{wch:16},{wch:24},{wch:12},{wch:12},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, "All Employees");
+
+  // ── SHEET 3-6: One sheet per checklist type ────────────────────────────────
+  TYPES.forEach(function(type) {
+    var typeIds = ids.filter(function(id){ return emps[id].type === type; });
+    if (!typeIds.length) return;
+    var sheetName = type.replace("International ","Intl. ").slice(0,31);
+    var rows = [["Name","Role","Department","DOJ","Tasks Done","Total Tasks","Progress %","Status"]];
+    typeIds.forEach(function(id) {
+      var e = emps[id];
+      var d = doneCount(e);
+      var tot = allTasks(type).length;
+      var p = tot ? Math.round(d/tot*100) : 0;
+      var status = p === 100 ? "Completed" : p > 0 ? "In Progress" : "Not Started";
+      rows.push([e.name, e.role||"", e.dept||"", e.doj||"", d, tot, p+"%", status]);
+    });
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:20},{wch:18},{wch:16},{wch:14},{wch:12},{wch:12},{wch:12},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  // ── SHEET 7+: Each Employee's Checklist ───────────────────────────────────
+  ids.forEach(function(id) {
+    var e = emps[id];
+    var ch = e.checks || {};
+    var tm = e.taskMeta || {};
+    var sheetName = e.name.slice(0,28) + "...".slice(0, Math.max(0, 31-e.name.length));
+    sheetName = e.name.slice(0,31);
+    var rows = [
+      [e.name + " — " + e.type],
+      ["Role: " + (e.role||"—") + "   Dept: " + (e.dept||"—") + "   DOJ: " + (e.doj||"—")],
+      [""],
+      ["#","Phase","Task","Owner","Assigned To","Timeline","Category","Deadline","Status"]
+    ];
+    var phases = CHECKLISTS[e.type];
+    phases.forEach(function(phase) {
+      phase.tasks.forEach(function(task) {
+        var isDone = !!ch[task.id];
+        var meta = tm[task.id] || {};
+        var assignee = meta.assignee || task.own;
+        var deadline = meta.deadline || "";
+        rows.push([
+          task.n,
+          phase.phase,
+          task.t,
+          task.own,
+          assignee,
+          task.tl,
+          task.cat,
+          deadline,
+          isDone ? "Done" : "Pending"
+        ]);
+      });
+    });
+    // Add summary row
+    var d = doneCount(e);
+    var tot = allTasks(e.type).length;
+    rows.push([""]);
+    rows.push(["","","SUMMARY","","","","","Tasks Done:", d + "/" + tot + " (" + (tot?Math.round(d/tot*100):0) + "%)"]);
+
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:4},{wch:22},{wch:45},{wch:16},{wch:16},{wch:22},{wch:18},{wch:12},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0,31));
+  });
+
+  // ── SHEET: Full Checklist Reference ──────────────────────────────────────
+  TYPES.forEach(function(type) {
+    var sheetName = ("CL-" + type.replace("International ","Intl.").replace("Local ","Loc.")).slice(0,31);
+    var rows = [
+      [type + " — Full Checklist"],
+      [""],
+      ["#","Phase","Task","Default Owner","Timeline","Category"]
+    ];
+    var phases = CHECKLISTS[type];
+    phases.forEach(function(phase) {
+      phase.tasks.forEach(function(task) {
+        rows.push([task.n, phase.phase, task.t, task.own, task.tl, task.cat]);
+      });
+    });
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:4},{wch:22},{wch:50},{wch:18},{wch:22},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  // ── DOWNLOAD ──────────────────────────────────────────────────────────────
+  var date = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, "IMC_HR_Dashboard_" + date + ".xlsx");
+}
 
 loadData();
 renderSidebar();
