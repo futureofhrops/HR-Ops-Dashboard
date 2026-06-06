@@ -130,13 +130,14 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
 .toast.ok{background:#E1F5EE;color:#065F46;border:1px solid #9FE1CB}
 .toast.err{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
 .emptystate{padding:32px;text-align:center;color:#9E9B94;font-size:13px}
-.task-comment{width:100%;padding:5px 8px;border:1px solid #E4E1DA;border-radius:6px;font-family:DM Sans,sans-serif;font-size:11px;color:#1A1917;resize:none;outline:none;margin-top:4px;line-height:1.4;transition:border-color .15s}
+.task-comment{width:100%;padding:5px 8px;border:1px solid #E4E1DA;border-radius:6px;font-family:DM Sans,sans-serif;font-size:12px;color:#1A1917;resize:vertical;outline:none;line-height:1.5;transition:border-color .15s;box-sizing:border-box}
 .task-comment:focus{border-color:#D0CCC3}
 .task-comment::placeholder{color:#9E9B94}
 .add-comment-btn{font-size:10px;color:#9E9B94;background:none;border:none;cursor:pointer;padding:2px 0;margin-top:2px;font-family:DM Sans,sans-serif;text-decoration:underline}
 .add-comment-btn:hover{color:#6B6860}
-.comment-bubble{background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:5px 8px;font-size:11px;color:#92400E;margin-top:4px;line-height:1.4;display:flex;align-items:flex-start;gap:6px}
-.comment-bubble.info{background:#F0F9FF;border-color:#BAE6FD;color:#0C4A6E}
+.comment-bubble{border-radius:6px;padding:6px 8px;font-size:11px;margin-top:5px;line-height:1.4;display:flex;align-items:flex-start}
+.comment-bubble.overdue-comment{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.comment-bubble.info-comment{background:#F0F9FF;border:1px solid #BAE6FD;color:#0C4A6E}
 .grplbl{font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.07em;padding:10px 10px 4px}
 .grpdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
 .task-meta{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
@@ -559,7 +560,7 @@ function showHome() {
   var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">'
     + '<div class="htitle">HR Dashboard</div>'
     + '<div style="display:flex;gap:8px">'
-    + '<button class="hbtn" onclick="exportToExcel()" style="color:#1D9E75;border-color:#9FE1CB;font-weight:500">&#8681; Export all (CSV)</button>'
+    + '<button class="hbtn" id="homeExportBtn" style="color:#1D9E75;border-color:#9FE1CB;font-weight:500">&#8681; Export all (CSV)</button>'
     + '</div></div>'
     + '<div class="hsub">India Operations &middot; IMC &middot; All employees at a glance</div>'
     + '<div class="statgrid">'
@@ -692,6 +693,10 @@ function showHome() {
 
   document.getElementById("mainArea").innerHTML = html;
 
+  // wire home export button
+  var homeExpBtn = document.getElementById("homeExportBtn");
+  if (homeExpBtn) homeExpBtn.addEventListener("click", function(){ exportToExcel(); });
+
   // wire all table row clicks
   var rows = document.querySelectorAll(".etable tbody tr[data-id]");
   for (var rr = 0; rr < rows.length; rr++) {
@@ -710,18 +715,14 @@ function showHome() {
 
 // ── EMPLOYEE DETAIL ──────────────────────────────────────────────────────────
 function showCommentBox(btn, empId, taskId) {
-  var bubbleId = "cbubble_" + empId + "_" + taskId;
-  var bubble = document.getElementById(bubbleId);
+  var bubble = document.getElementById("cbubble_" + empId + "_" + taskId);
   if (bubble) {
     bubble.style.display = "flex";
-    bubble.style.alignItems = "flex-start";
     var ta = bubble.querySelector("textarea");
-    if (ta) {
-      ta.style.width = "100%";
-      ta.focus();
-    }
+    if (ta) { ta.focus(); }
   }
-  if (btn) btn.style.display = "none";
+  var btnEl = document.getElementById("cbtn_" + empId + "_" + taskId);
+  if (btnEl) btnEl.style.display = "none";
 }
 
 function infoField(label, value) {
@@ -895,10 +896,10 @@ function showEmployee(id) {
         + (deadline ? ' <input type="date" class="dl-picker" data-empid="' + id + '" data-taskid="' + task.id + '" value="' + deadline + '" title="Change deadline" style="width:0;opacity:0;position:absolute" />' : '')
         + '</span>'
         + '</div>'
-        + '<div class="comment-bubble' + (dlClass==='overdue'?' ':'  info') + '" id="cbubble_' + id + '_' + task.id + '" style="' + (comment ? '' : 'display:none') + '" onclick="event.stopPropagation()">'
-        + '<textarea class="task-comment" rows="2" data-empid="' + id + '" data-taskid="' + task.id + '" placeholder="Add a comment or note..." onclick="event.stopPropagation()">' + comment + '</textarea>'
+        + '<div class="comment-bubble' + (dlClass==='overdue' ? ' overdue-comment' : ' info-comment') + '" id="cbubble_' + id + '_' + task.id + '" style="display:' + (comment ? 'flex' : 'none') + '">'
+        + '<textarea class="task-comment" rows="2" data-empid="' + id + '" data-taskid="' + task.id + '" placeholder="Add a comment or note...">' + comment + '</textarea>'
         + '</div>'
-        + (!comment ? '<button class="add-comment-btn" data-empid="' + id + '" data-taskid="' + task.id + '">&#128172; add comment</button>' : '')
+        + '<button class="add-comment-btn" id="cbtn_' + id + '_' + task.id + '" data-empid="' + id + '" data-taskid="' + task.id + '" style="' + (comment ? 'display:none' : '') + '">&#128172; add comment</button>'
         + '</div></div></div>';
     }
     html += '</div>';
@@ -927,7 +928,8 @@ function showEmployee(id) {
       ev.stopPropagation();
       var eid = this.getAttribute("data-empid");
       var tid = this.getAttribute("data-taskid");
-      showCommentBox(this, eid, tid);
+      showCommentBox(null, eid, tid);
+      this.style.display = "none";
     });
   }
   // Wire comment textareas
@@ -1475,27 +1477,25 @@ function makeTable(rows, headers) {
   return "<table border='1' style='border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px'>" + th + tr + "</table>";
 }
 function downloadCSV(filename, rows) {
-  // Build proper CSV - no warnings in Excel, Numbers, or Google Sheets
   var csv = rows.map(function(row) {
     return row.map(function(cell) {
-      var s = cell === null || cell === undefined ? "" : String(cell);
-      // Escape: wrap in quotes if contains comma, quote, or newline
-      if (s.indexOf(",") !== -1 || s.indexOf('"') !== -1 || s.indexOf("\n") !== -1) {
+      var s = (cell === null || cell === undefined) ? "" : String(cell);
+      if (s.indexOf(",") !== -1 || s.indexOf('"') !== -1 || s.indexOf("\n") !== -1 || s.indexOf("\r") !== -1) {
         s = '"' + s.replace(/"/g, '""') + '"';
       }
       return s;
     }).join(",");
-  }).join("\n");
+  }).join("\r\n");
 
-  var blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
-  var url = URL.createObjectURL(blob);
+  // Use data URI - works on all browsers, GitHub Pages, Netlify, local files
+  var dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent("\uFEFF" + csv);
   var a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
+  a.setAttribute("href", dataUri);
+  a.setAttribute("download", filename);
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(function(){ document.body.removeChild(a); }, 100);
 }
 
 // ── EXPORT: Full Dashboard (all sheets as one file) ───────────────────────────
