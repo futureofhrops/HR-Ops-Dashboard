@@ -1014,7 +1014,7 @@ function renderAddForm(type) {
       + fld("mNextTeam","Next team *","text","e.g. Amsterdam Desk",true)
       + fld("mDOJ","Transfer date *","date","",true)
       + radioFieldWithText("mTransferType","Transfer type *",[
-          {value:"Return to Home Country", textId:"mTransferRegion1", placeholder:"e.g. Netherlands"},
+          {value:"Return to Home Region", textId:"mTransferRegion1", placeholder:"e.g. Netherlands"},
           {value:"Transfer to Other Region", textId:"mTransferRegion2", placeholder:"e.g. Singapore"}
         ],true);
 
@@ -1101,12 +1101,13 @@ function radioFieldWithText(id, label, options, required) {
   html += '<div style="display:flex;flex-direction:column;gap:8px">';
   options.forEach(function(opt) {
     html += '<div>'
-      + '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#1A1917;cursor:pointer;padding:7px 11px;border:1px solid #E4E1DA;border-radius:8px">'
-      + '<input type="radio" name="' + id + '" value="' + opt.value + '" data-textid="' + opt.textId + '" style="cursor:pointer"/> ' + opt.value
+      + '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:500;color:#1A1917;cursor:pointer;padding:8px 12px;border:1px solid #E4E1DA;border-radius:8px;width:100%">'
+      + '<span>' + opt.value + '</span>'
+      + '<input type="radio" name="' + id + '" value="' + opt.value + '" data-textid="' + opt.textId + '" style="cursor:pointer;flex-shrink:0;width:15px;height:15px"/>'
       + '</label>'
-      + '<div id="' + opt.textId + 'Wrap" style="display:none;margin-top:4px;padding-left:12px">'
+      + '<div id="' + opt.textId + 'Wrap" style="display:none;margin-top:4px;padding-left:4px">'
       + '<input id="' + opt.textId + '" type="text" placeholder="' + opt.placeholder + '" style="width:100%;padding:7px 10px;border:1px solid #E4E1DA;border-radius:8px;font-family:DM Sans,sans-serif;font-size:12px"/>'
-      + '<div style="font-size:11px;color:#9E9B94;margin-top:3px">Enter the region or country</div>'
+      + '<div style="font-size:11px;color:#9E9B94;margin-top:3px">Enter the region</div>'
       + '</div></div>';
   });
   html += '</div></div>';
@@ -1267,9 +1268,9 @@ function addEmp() {
     e.team = val("mNextTeam"); e.dept = e.team; e.doj = val("mDOJ");
     e.transferType = transferType;
     // Capture region text based on which option was selected
-    if (transferType === "Return to Home Country") {
+    if (transferType === "Return to Home Region") {
       var region1 = val("mTransferRegion1");
-      if (region1) e.transferType = "Return to Home Country — " + region1;
+      if (region1) e.transferType = "Return to Home Region — " + region1;
     } else if (transferType === "Transfer to Other Region") {
       var region2 = val("mTransferRegion2");
       if (region2) e.transferType = "Transfer to Other Region — " + region2;
