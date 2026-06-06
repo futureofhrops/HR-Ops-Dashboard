@@ -152,13 +152,12 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
   <div class="nbrand">
     <div class="nlogo">OT</div>
     <span class="ntitle">HR Ops Dashboard</span>
-    <span class="nsub">· India Operations · IMC</span>
+    <span class="nsub">&middot; India Operations &middot; IMC</span>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
-    <button class="homebtn" id="exportBtn" title="Export to Excel" style="width:auto;padding:0 12px;font-size:12px;font-weight:500;gap:5px;display:flex;align-items:center">&#8681; Export Excel</button>
+    <button class="homebtn" id="exportBtn" style="width:auto;padding:0 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;color:#1D9E75;border-color:#9FE1CB">&#8681; Export Excel</button>
     <button class="homebtn" id="homeNavBtn" title="Go to dashboard">&#8962;</button>
   </div>
-    <button class="homebtn" id="exportBtn" title="Export to Excel" style="font-size:13px;font-weight:600;width:auto;padding:0 12px;gap:5px;display:flex;align-items:center">&#8659; Export</button>
 </nav>
 
 <div class="layout">
@@ -168,10 +167,10 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
         <span class="sblbl">Employees</span>
         <span class="sbcnt" id="empCount">0</span>
       </div>
+      <button class="addbtn" id="addBtn" style="margin:0 0 8px 0;background:#1A1917;color:#fff;border-color:#1A1917;border-style:solid;border-radius:8px;font-weight:500">+ Add new employee</button>
       <input class="srch" id="searchBox" placeholder="Search employees…"/>
     </div>
     <div class="emplist" id="empList"></div>
-    <button class="addbtn" id="addBtn">+ Add new employee</button>
   </aside>
   <main class="main" id="mainArea"></main>
 </div>
@@ -585,10 +584,78 @@ function showHome() {
     html += '<div class="emptystate">No employees added yet. Click &ldquo;+ Add new employee&rdquo; to get started.</div>';
   }
 
+  // ── COMPLETED & ATTENTION SECTIONS ─────────────────────────────────────
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  var completed = ids.filter(function(id) {
+    var e = emps[id];
+    var d = doneCount(e);
+    var tot = allTasks(e.type).length;
+    return d === tot && tot > 0;
+  });
+
+  var needsAttention = ids.filter(function(id) {
+    var e = emps[id];
+    if (!e.doj) return false;
+    var doj = new Date(e.doj); doj.setHours(0,0,0,0);
+    var d = doneCount(e);
+    var tot = allTasks(e.type).length;
+    return doj <= today && d < tot;
+  });
+
+  // Needs Attention section
+  if (needsAttention.length > 0) {
+    html += '<div class="sectlbl" style="color:#DC2626">&#9888; Needs attention — DOJ passed, tasks incomplete (' + needsAttention.length + ')</div>'
+      + '<div class="etable" style="border-color:#FECACA;margin-bottom:22px"><table>'
+      + '<thead><tr style="background:#FEF2F2"><th>Employee</th><th>Type</th><th>DOJ</th><th>Days overdue</th><th>Progress</th><th>Tasks</th></tr></thead>'
+      + '<tbody>';
+    needsAttention.forEach(function(id) {
+      var e = emps[id]; var ra = avColor(id);
+      var rp = pct(e); var rd = doneCount(e); var rtot = allTasks(e.type).length;
+      var rcol = TYPE_COLORS[e.type];
+      var doj = new Date(e.doj); doj.setHours(0,0,0,0);
+      var daysOver = Math.round((today - doj) / 86400000);
+      html += '<tr data-id="' + id + '" style="background:#FFFAFA">'
+        + '<td><div style="display:flex;align-items:center;gap:9px">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:#FEF2F2;color:#DC2626;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">' + initials(e.name) + '</div>'
+        + '<div><div style="font-weight:500;color:#DC2626">' + e.name + '</div><div style="font-size:11px;color:#9E9B94">' + (e.role||'—') + '</div></div></div></td>'
+        + '<td><span class="tpill" style="background:' + rcol.bg + ';color:' + rcol.c + '">' + e.type.replace("International ","Intl. ") + '</span></td>'
+        + '<td style="color:#DC2626;font-size:12px;font-weight:600">' + (e.doj||'—') + '</td>'
+        + '<td><span style="background:#FEF2F2;color:#DC2626;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">' + daysOver + ' day' + (daysOver!==1?'s':'') + ' ago</span></td>'
+        + '<td><div class="tprow"><div class="tptrack"><div class="tpfill" style="width:' + rp + '%;background:#DC2626"></div></div><span class="tppct" style="color:#DC2626">' + rp + '%</span></div></td>'
+        + '<td style="font-family:DM Mono,monospace;font-size:12px;color:#DC2626">' + rd + '/' + rtot + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  // Completed section
+  if (completed.length > 0) {
+    html += '<div class="sectlbl" style="color:#1D9E75">&#10003; Completed employees (' + completed.length + ')</div>'
+      + '<div class="etable" style="border-color:#9FE1CB;margin-bottom:22px"><table>'
+      + '<thead><tr style="background:#E1F5EE"><th>Employee</th><th>Type</th><th>DOJ</th><th>Progress</th><th>Tasks</th></tr></thead>'
+      + '<tbody>';
+    completed.forEach(function(id) {
+      var e = emps[id]; var ra = avColor(id);
+      var rp = pct(e); var rd = doneCount(e); var rtot = allTasks(e.type).length;
+      var rcol = TYPE_COLORS[e.type];
+      html += '<tr data-id="' + id + '">'
+        + '<td><div style="display:flex;align-items:center;gap:9px">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:#E1F5EE;color:#1D9E75;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">' + initials(e.name) + '</div>'
+        + '<div><div style="font-weight:500;color:#1D9E75">' + e.name + '</div><div style="font-size:11px;color:#9E9B94">' + (e.role||'—') + '</div></div></div></td>'
+        + '<td><span class="tpill" style="background:' + rcol.bg + ';color:' + rcol.c + '">' + e.type.replace("International ","Intl. ") + '</span></td>'
+        + '<td style="color:#6B6860;font-size:12px">' + (e.doj||'—') + '</td>'
+        + '<td><div class="tprow"><div class="tptrack"><div class="tpfill" style="width:100%;background:#1D9E75"></div></div><span class="tppct" style="color:#1D9E75">100%</span></div></td>'
+        + '<td style="font-family:DM Mono,monospace;font-size:12px;color:#1D9E75">' + rd + '/' + rtot + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
   document.getElementById("mainArea").innerHTML = html;
 
-  // wire table row clicks
-  var rows = document.querySelectorAll(".etable tbody tr");
+  // wire all table row clicks
+  var rows = document.querySelectorAll(".etable tbody tr[data-id]");
   for (var rr = 0; rr < rows.length; rr++) {
     rows[rr].addEventListener("click", function(){
       showEmployee(this.getAttribute("data-id"));
@@ -874,136 +941,13 @@ function showEditModal(id) {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 // ── EXPORT TO EXCEL ──────────────────────────────────────────────────────────
-function exportToExcel() {
-  var wb = XLSX.utils.book_new();
-  var ids = Object.keys(emps);
 
-  if (ids.length === 0) {
-    alert("No employee data to export.");
-    return;
-  }
-
-  // ── Sheet 1: Employee Summary ─────────────────────────────────────────────
-  var summaryData = [["Employee Name","Role","Department","Date of Joining","Checklist Type","Total Tasks","Completed","Remaining","Progress %"]];
-  for (var i = 0; i < ids.length; i++) {
-    var e = emps[ids[i]];
-    var d = doneCount(e);
-    var tot = allTasks(e.type).length;
-    summaryData.push([
-      e.name,
-      e.role || "—",
-      e.dept || "—",
-      e.doj || "—",
-      e.type,
-      tot,
-      d,
-      tot - d,
-      Math.round(tot ? d / tot * 100 : 0) + "%"
-    ]);
-  }
-  var wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary["!cols"] = [{wch:22},{wch:18},{wch:16},{wch:14},{wch:24},{wch:12},{wch:12},{wch:12},{wch:12}];
-  XLSX.utils.book_append_sheet(wb, wsSummary, "Employee Summary");
-
-  // ── Sheet 2: Task Detail (all employees x all tasks) ──────────────────────
-  var taskData = [["Employee","Checklist Type","Phase","Task #","Task Description","Owner","Assigned To","Timeline","Category","Status","Deadline"]];
-  for (var ei = 0; ei < ids.length; ei++) {
-    var emp = emps[ids[ei]];
-    var phases = CHECKLISTS[emp.type];
-    var ch = emp.checks || {};
-    var tm = emp.taskMeta || {};
-    for (var pi = 0; pi < phases.length; pi++) {
-      var phase = phases[pi];
-      for (var ti = 0; ti < phase.tasks.length; ti++) {
-        var task = phase.tasks[ti];
-        var meta = tm[task.id] || {};
-        taskData.push([
-          emp.name,
-          emp.type,
-          phase.phase,
-          task.n,
-          task.t,
-          task.own,
-          meta.assignee || task.own,
-          task.tl,
-          task.cat,
-          ch[task.id] ? "Completed" : "Pending",
-          meta.deadline || "—"
-        ]);
-      }
-    }
-  }
-  var wsTask = XLSX.utils.aoa_to_sheet(taskData);
-  wsTask["!cols"] = [{wch:20},{wch:22},{wch:24},{wch:8},{wch:55},{wch:18},{wch:18},{wch:22},{wch:18},{wch:12},{wch:14}];
-  XLSX.utils.book_append_sheet(wb, wsTask, "Task Details");
-
-  // ── Sheet 3: Progress by Checklist Type ───────────────────────────────────
-  var typeData = [["Checklist Type","Total Employees","Tasks Completed","Tasks Remaining","Progress %"]];
-  for (var t = 0; t < TYPES.length; t++) {
-    var type = TYPES[t];
-    var empIds = ids.filter(function(id){ return emps[id].type === type; });
-    var td = empIds.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
-    var tt = empIds.reduce(function(s,id){ return s + allTasks(type).length; }, 0);
-    typeData.push([
-      type,
-      empIds.length,
-      td,
-      tt - td,
-      Math.round(tt ? td / tt * 100 : 0) + "%"
-    ]);
-  }
-  var wsType = XLSX.utils.aoa_to_sheet(typeData);
-  wsType["!cols"] = [{wch:26},{wch:18},{wch:18},{wch:18},{wch:14}];
-  XLSX.utils.book_append_sheet(wb, wsType, "By Checklist Type");
-
-  // ── Sheet 4: Overdue & Upcoming Deadlines ─────────────────────────────────
-  var deadlineData = [["Employee","Task","Assigned To","Deadline","Days Overdue / Remaining","Status"]];
-  var today = new Date(); today.setHours(0,0,0,0);
-  for (var di = 0; di < ids.length; di++) {
-    var demp = emps[ids[di]];
-    var dch = demp.checks || {};
-    var dtm = demp.taskMeta || {};
-    var dphases = CHECKLISTS[demp.type];
-    for (var dpi = 0; dpi < dphases.length; dpi++) {
-      for (var dti = 0; dti < dphases[dpi].tasks.length; dti++) {
-        var dtask = dphases[dpi].tasks[dti];
-        var dmeta = dtm[dtask.id] || {};
-        if (dmeta.deadline) {
-          var dlDate = new Date(dmeta.deadline);
-          var diff = Math.round((dlDate - today) / 86400000);
-          var status = dch[dtask.id] ? "Completed" : diff < 0 ? "Overdue" : diff === 0 ? "Due today" : diff <= 3 ? "Due soon" : "On track";
-          if (!dch[dtask.id]) { // Only pending tasks
-            deadlineData.push([
-              demp.name,
-              dtask.n + ". " + dtask.t,
-              dmeta.assignee || dtask.own,
-              dmeta.deadline,
-              diff < 0 ? Math.abs(diff) + " days overdue" : diff + " days remaining",
-              status
-            ]);
-          }
-        }
-      }
-    }
-  }
-  if (deadlineData.length > 1) {
-    var wsDeadline = XLSX.utils.aoa_to_sheet(deadlineData);
-    wsDeadline["!cols"] = [{wch:20},{wch:55},{wch:18},{wch:14},{wch:22},{wch:14}];
-    XLSX.utils.book_append_sheet(wb, wsDeadline, "Deadlines");
-  }
-
-  // ── Download ──────────────────────────────────────────────────────────────
-  var today2 = new Date();
-  var dateStr = today2.getFullYear() + "-" + String(today2.getMonth()+1).padStart(2,"0") + "-" + String(today2.getDate()).padStart(2,"0");
-  XLSX.writeFile(wb, "IMC_HR_Dashboard_" + dateStr + ".xlsx");
-  showToast("Excel file downloaded successfully!", "ok");
-}
 
 document.getElementById("homeNavBtn").addEventListener("click", showHome);
 document.getElementById("exportBtn").addEventListener("click", exportToExcel);
 document.getElementById("addBtn").addEventListener("click", showAddModal);
 document.getElementById("searchBox").addEventListener("input", renderSidebar);
-document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+
 document.getElementById("modal").addEventListener("click", function(e){
   if (e.target === this) closeModal();
 });
@@ -1141,6 +1085,44 @@ function exportToExcel() {
     ws['!cols'] = [{wch:4},{wch:22},{wch:50},{wch:18},{wch:22},{wch:18}];
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
+
+  // ── SHEET: Needs Attention ───────────────────────────────────────────────
+  var today2 = new Date(); today2.setHours(0,0,0,0);
+  var attnIds = ids.filter(function(id) {
+    var e = emps[id];
+    if (!e.doj) return false;
+    var doj = new Date(e.doj); doj.setHours(0,0,0,0);
+    return doj <= today2 && doneCount(e) < allTasks(e.type).length;
+  });
+  if (attnIds.length > 0) {
+    var attnRows = [["Employee","Role","DOJ","Days Overdue","Type","Tasks Done","Total","Progress","Status"]];
+    attnIds.forEach(function(id) {
+      var e = emps[id];
+      var doj = new Date(e.doj); doj.setHours(0,0,0,0);
+      var daysOver = Math.round((today2 - doj) / 86400000);
+      var d = doneCount(e); var tot = allTasks(e.type).length;
+      attnRows.push([e.name, e.role||"", e.doj, daysOver+" days", e.type, d, tot, Math.round(d/tot*100)+"%", "OVERDUE"]);
+    });
+    var wsAttn = XLSX.utils.aoa_to_sheet(attnRows);
+    wsAttn['!cols'] = [{wch:20},{wch:16},{wch:14},{wch:14},{wch:24},{wch:12},{wch:10},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wsAttn, "Needs Attention");
+  }
+
+  // ── SHEET: Completed ─────────────────────────────────────────────────────
+  var compIds = ids.filter(function(id) {
+    var e = emps[id]; var tot = allTasks(e.type).length;
+    return doneCount(e) === tot && tot > 0;
+  });
+  if (compIds.length > 0) {
+    var compRows = [["Employee","Role","Department","DOJ","Type","Tasks","Status"]];
+    compIds.forEach(function(id) {
+      var e = emps[id]; var tot = allTasks(e.type).length;
+      compRows.push([e.name, e.role||"", e.dept||"", e.doj||"", e.type, tot+"/"+tot, "Completed"]);
+    });
+    var wsComp = XLSX.utils.aoa_to_sheet(compRows);
+    wsComp['!cols'] = [{wch:20},{wch:16},{wch:16},{wch:14},{wch:24},{wch:10},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wsComp, "Completed");
+  }
 
   // ── DOWNLOAD ──────────────────────────────────────────────────────────────
   var date = new Date().toISOString().slice(0,10);
