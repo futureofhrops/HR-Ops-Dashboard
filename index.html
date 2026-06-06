@@ -453,10 +453,12 @@ function showFilteredType(type) {
   var tot = ids.reduce(function(s,id){ return s + allTasks(type).length; }, 0);
   var p = tot ? Math.round(d / tot * 100) : 0;
 
-  var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+  var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">'
     + '<button class="hbtn back" id="backToHome">&larr; Back to dashboard</button>'
     + '<div class="clbadge" style="background:' + col.bg + ';border:1px solid ' + col.dot + '44;color:' + col.c + ';margin-bottom:0">'
     + '<div class="clbadgedot" style="background:' + col.dot + '"></div>' + type + '</div>'
+    + '<button class="hbtn" id="exportTypeBtn" style="color:#1D9E75;border-color:#9FE1CB;margin-left:auto">&#8681; Export employees</button>'
+    + '<button class="hbtn" id="exportCLBtn" style="color:#7C3AED;border-color:#DDD6FE">&#8681; Export checklist</button>'
     + '</div>'
     + '<div class="hsub" style="margin-bottom:18px">' + ids.length + ' employee' + (ids.length !== 1 ? 's' : '') + ' &middot; ' + d + ' of ' + tot + ' tasks completed &middot; ' + p + '% overall progress</div>';
 
@@ -499,6 +501,8 @@ function showFilteredType(type) {
   document.getElementById("mainArea").innerHTML = html;
 
   document.getElementById("backToHome").addEventListener("click", function(){ showHome(); });
+  document.getElementById("exportTypeBtn").addEventListener("click", function(){ exportByType(type); });
+  document.getElementById("exportCLBtn").addEventListener("click", function(){ exportChecklist(type); });
 
   var rows = document.querySelectorAll(".etable tbody tr");
   for (var rr = 0; rr < rows.length; rr++) {
@@ -521,7 +525,11 @@ function showHome() {
   var totalRem = totalTasks - totalDone;
   var ovPct = totalTasks ? Math.round(totalDone / totalTasks * 100) : 0;
 
-  var html = '<div class="htitle">HR Dashboard</div>'
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">'
+    + '<div class="htitle">HR Dashboard</div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button class="hbtn" onclick="exportToExcel()" style="color:#1D9E75;border-color:#9FE1CB;font-weight:500">&#8681; Export all data</button>'
+    + '</div></div>'
     + '<div class="hsub">India Operations &middot; IMC &middot; All employees at a glance</div>'
     + '<div class="statgrid">'
     + '<div class="statcard"><div class="statlbl">Total employees</div><div class="statval">' + totalEmps + '</div></div>'
@@ -701,6 +709,7 @@ function showEmployee(id) {
     + '</div></div>'
     + '<div class="ehacts">'
     + '<button class="hbtn back" id="backBtn">&larr; Back to dashboard</button>'
+    + '<button class="hbtn" id="exportEmpBtn" style="color:#1D9E75;border-color:#9FE1CB">&#8681; Export</button>'
     + '<button class="hbtn" id="editBtn">&#9998; Edit</button>'
     + '<button class="hbtn del" id="delBtn">&#10005; Remove</button>'
     + '</div></div>'
@@ -805,6 +814,7 @@ function showEmployee(id) {
 
   // Wire buttons
   document.getElementById("backBtn").addEventListener("click", function(){ showHome(); });
+  document.getElementById("exportEmpBtn").addEventListener("click", function(){ exportEmployee(id); });
   document.getElementById("editBtn").addEventListener("click", function(){ showEditModal(id); });
   document.getElementById("delBtn").addEventListener("click", function(){ deleteEmployee(id); });
 
@@ -951,141 +961,170 @@ document.getElementById("modal").addEventListener("click", function(e){
   if (e.target === this) closeModal();
 });
 
-function exportToExcel() {
-  var ids = Object.keys(emps);
-  if (ids.length === 0) { alert("No employee data to export yet."); return; }
 
-  var today = new Date(); today.setHours(0,0,0,0);
-  var dateStr = new Date().toISOString().slice(0,10);
-
-  // Build multi-sheet workbook as HTML (Excel opens natively)
-  var sheets = [];
-
-  // Helper: escape cell
-  function esc(v) {
-    if (v === null || v === undefined) return "";
-    return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  }
-
-  function makeTable(rows, headers) {
-    var t = "<table><tr>" + headers.map(function(h){ return "<th style='background:#1A1917;color:#fff;font-weight:bold;padding:6px 10px;border:1px solid #ccc'>" + esc(h) + "</th>"; }).join("") + "</tr>";
-    rows.forEach(function(row) {
-      t += "<tr>" + row.map(function(cell){ return "<td style='padding:5px 10px;border:1px solid #ddd'>" + esc(cell) + "</td>"; }).join("") + "</tr>";
-    });
-    return t + "</table>";
-  }
-
-  // Sheet 1: Dashboard Summary
-  var totalDone = ids.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
-  var totalTasks = ids.reduce(function(s,id){ return s + allTasks(emps[id].type).length; }, 0);
-  var ovPct = totalTasks ? Math.round(totalDone/totalTasks*100) : 0;
-  var s1rows = [
-    ["Total Employees", ids.length],
-    ["Tasks Completed", totalDone],
-    ["Tasks Remaining", totalTasks - totalDone],
-    ["Overall Progress", ovPct + "%"],
-    ["",""],
-    ["Checklist Type","Employees","Done","Remaining","Progress"]
-  ];
-  TYPES.forEach(function(type) {
-    var tids = ids.filter(function(id){ return emps[id].type === type; });
-    var d = tids.reduce(function(s,id){ return s + doneCount(emps[id]); }, 0);
-    var tot = tids.reduce(function(s,id){ return s + allTasks(type).length; }, 0);
-    s1rows.push([type, tids.length, d, tot-d, (tot?Math.round(d/tot*100):0)+"%"]);
-  });
-  sheets.push({name:"Dashboard Summary", html: "<h2>IMC HR Ops Dashboard &mdash; " + dateStr + "</h2>" + makeTable(s1rows.slice(0,4), ["Metric","Value"]) + "<br>" + makeTable(s1rows.slice(5), ["Type","Employees","Done","Remaining","Progress"])});
-
-  // Sheet 2: All Employees
-  var empRows = ids.map(function(id) {
-    var e = emps[id]; var d = doneCount(e); var tot = allTasks(e.type).length; var p = tot?Math.round(d/tot*100):0;
-    return [e.name, e.role||"", e.dept||"", e.doj||"", e.type, d, tot, p+"%", p===100?"Completed":p>0?"In Progress":"Not Started"];
-  });
-  sheets.push({name:"All Employees", html: makeTable(empRows, ["Name","Role","Department","DOJ","Checklist Type","Done","Total","Progress","Status"])});
-
-  // Sheet 3: Needs Attention
-  var attn = ids.filter(function(id) {
-    var e = emps[id]; if (!e.doj) return false;
-    var doj = new Date(e.doj); doj.setHours(0,0,0,0);
-    return doj <= today && doneCount(e) < allTasks(e.type).length;
-  });
-  if (attn.length) {
-    var attnRows = attn.map(function(id) {
-      var e = emps[id]; var doj = new Date(e.doj); doj.setHours(0,0,0,0);
-      var over = Math.round((today-doj)/86400000);
-      var d = doneCount(e); var tot = allTasks(e.type).length;
-      return [e.name, e.role||"", e.doj, over+" days overdue", e.type, d+"/"+tot, Math.round(d/tot*100)+"%"];
-    });
-    sheets.push({name:"Needs Attention", html: makeTable(attnRows, ["Name","Role","DOJ","Overdue","Type","Tasks","Progress"])});
-  }
-
-  // Sheet 4: Completed
-  var comp = ids.filter(function(id) { var tot=allTasks(emps[id].type).length; return doneCount(emps[id])===tot&&tot>0; });
-  if (comp.length) {
-    var compRows = comp.map(function(id) {
-      var e = emps[id]; var tot = allTasks(e.type).length;
-      return [e.name, e.role||"", e.dept||"", e.doj||"", e.type, tot+"/"+tot, "Completed"];
-    });
-    sheets.push({name:"Completed", html: makeTable(compRows, ["Name","Role","Department","DOJ","Type","Tasks","Status"])});
-  }
-
-  // Sheets per checklist type
-  TYPES.forEach(function(type) {
-    var tids = ids.filter(function(id){ return emps[id].type === type; });
-    if (!tids.length) return;
-    var rows = tids.map(function(id) {
-      var e = emps[id]; var d = doneCount(e); var tot = allTasks(type).length; var p = tot?Math.round(d/tot*100):0;
-      return [e.name, e.role||"", e.dept||"", e.doj||"", d, tot, p+"%", p===100?"Completed":p>0?"In Progress":"Not Started"];
-    });
-    sheets.push({name:type.replace("International ","Intl. "), html: makeTable(rows, ["Name","Role","Dept","DOJ","Done","Total","Progress","Status"])});
-  });
-
-  // Sheet per employee
-  ids.forEach(function(id) {
-    var e = emps[id]; var ch = e.checks||{}; var tm = e.taskMeta||{};
-    var rows = [];
-    CHECKLISTS[e.type].forEach(function(phase) {
-      phase.tasks.forEach(function(task) {
-        var meta = tm[task.id]||{};
-        rows.push([task.n, phase.phase, task.t, meta.assignee||task.own, task.tl, task.cat, meta.deadline||"", ch[task.id]?"Done":"Pending"]);
-      });
-    });
-    sheets.push({name:e.name.slice(0,31), html: "<h3>"+esc(e.name)+" &mdash; "+esc(e.type)+"</h3><p>Role: "+esc(e.role||"—")+" | Dept: "+esc(e.dept||"—")+" | DOJ: "+esc(e.doj||"—")+"</p><br>" + makeTable(rows, ["#","Phase","Task","Assigned To","Timeline","Category","Deadline","Status"])});
-  });
-
-  // Checklist reference sheets
-  TYPES.forEach(function(type) {
-    var rows = [];
-    CHECKLISTS[type].forEach(function(phase) {
-      phase.tasks.forEach(function(task) {
-        rows.push([task.n, phase.phase, task.t, task.own, task.tl, task.cat]);
-      });
-    });
-    sheets.push({name:("CL-"+type).slice(0,31), html: "<h3>"+esc(type)+" &mdash; Full Checklist</h3>" + makeTable(rows, ["#","Phase","Task","Owner","Timeline","Category"])});
-  });
-
-  // Build workbook HTML
-  var wb = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  wb += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>';
-  sheets.forEach(function(s){ wb += '<x:ExcelWorksheet><x:Name>' + s.name + '</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>'; });
-  wb += '</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
-  sheets.forEach(function(s) {
-    wb += '<table style="mso-displayed-decimal-separator:&quot;.&quot;;mso-displayed-thousand-separator:&quot;,&quot;" x:Name="' + s.name + '">';
-    wb += '<tr><td style="mso-ignore:colspan"></td></tr></table>';
-    wb += '<br clear="all">';
-    wb += '<div style="page-break-before:always"></div>';
-    wb += '<table x:Name="' + s.name + '">' + s.html + '</table>';
-  });
-  wb += "</body></html>";
-
-  // Download
-  var blob = new Blob([wb], {type:"application/vnd.ms-excel;charset=utf-8"});
+// ── EXPORT HELPERS ───────────────────────────────────────────────────────────
+function esc(v) {
+  if (v === null || v === undefined) return "";
+  return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function makeTable(rows, headers) {
+  var th = "<tr>" + headers.map(function(h){ return "<th style='background:#1A1917;color:#fff;font-weight:bold;padding:6px 10px;border:1px solid #ccc;white-space:nowrap'>" + esc(h) + "</th>"; }).join("") + "</tr>";
+  var tr = rows.map(function(row){
+    return "<tr>" + row.map(function(cell,ci){
+      var bg = ci===row.length-1 && cell==="Done" ? "#E1F5EE" : ci===row.length-1 && cell==="Pending" ? "#FFF7ED" : "";
+      return "<td style='padding:5px 10px;border:1px solid #ddd;" + (bg?"background:"+bg+";":"") + "'>" + esc(cell) + "</td>";
+    }).join("") + "</tr>";
+  }).join("");
+  return "<table border='1' style='border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px'>" + th + tr + "</table>";
+}
+function downloadXLS(filename, title, tableHtml) {
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"></head><body>'
+    + '<h2 style="font-family:Arial;color:#1A1917">' + esc(title) + '</h2>'
+    + '<p style="font-family:Arial;font-size:11px;color:#888">Generated: ' + new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) + '</p><br>'
+    + tableHtml + '</body></html>';
+  var blob = new Blob([html], {type:"application/vnd.ms-excel;charset=utf-8"});
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
-  a.href = url; a.download = "IMC_HR_Dashboard_" + dateStr + ".xls";
+  a.href = url; a.download = filename;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// ── EXPORT: Full Dashboard (all sheets as one file) ───────────────────────────
+function exportToExcel() {
+  var ids = Object.keys(emps);
+  if (!ids.length) { alert("No employee data to export yet."); return; }
+  var today = new Date(); today.setHours(0,0,0,0);
+  var dateStr = new Date().toISOString().slice(0,10);
+
+  // Build one big HTML with all tables separated by page breaks
+  var html = "";
+
+  // Section 1: Dashboard Summary
+  var totalDone = ids.reduce(function(s,id){ return s+doneCount(emps[id]); },0);
+  var totalTasks = ids.reduce(function(s,id){ return s+allTasks(emps[id].type).length; },0);
+  var ovPct = totalTasks?Math.round(totalDone/totalTasks*100):0;
+  var sumRows = [["Total Employees",ids.length],["Tasks Completed",totalDone],["Tasks Remaining",totalTasks-totalDone],["Overall Progress",ovPct+"%"]];
+  html += '<h2 style="font-family:Arial;color:#1A1917">IMC HR Ops Dashboard &mdash; ' + dateStr + '</h2>';
+  html += makeTable(sumRows, ["Metric","Value"]) + "<br><br>";
+
+  var typeRows = TYPES.map(function(type){
+    var tids=ids.filter(function(id){return emps[id].type===type;});
+    var d=tids.reduce(function(s,id){return s+doneCount(emps[id]);},0);
+    var tot=tids.reduce(function(s,id){return s+allTasks(type).length;},0);
+    return [type,tids.length,d,tot-d,(tot?Math.round(d/tot*100):0)+"%"];
+  });
+  html += makeTable(typeRows, ["Checklist Type","Employees","Done","Remaining","Progress"]) + "<br><br>";
+
+  // Section 2: All Employees
+  html += '<div style="page-break-before:always"></div><h2 style="font-family:Arial">All Employees</h2>';
+  var empRows = ids.map(function(id){
+    var e=emps[id]; var d=doneCount(e); var tot=allTasks(e.type).length; var p=tot?Math.round(d/tot*100):0;
+    return [e.name,e.role||"",e.dept||"",e.doj||"",e.type,d,tot,p+"%",p===100?"Completed":p>0?"In Progress":"Not Started"];
+  });
+  html += makeTable(empRows, ["Name","Role","Department","DOJ","Type","Done","Total","Progress","Status"]) + "<br><br>";
+
+  // Section 3: Needs Attention
+  var attn=ids.filter(function(id){
+    var e=emps[id]; if(!e.doj) return false;
+    var doj=new Date(e.doj); doj.setHours(0,0,0,0);
+    return doj<=today && doneCount(e)<allTasks(e.type).length;
+  });
+  if (attn.length) {
+    html += '<div style="page-break-before:always"></div><h2 style="font-family:Arial;color:#DC2626">Needs Attention</h2>';
+    var attnRows=attn.map(function(id){
+      var e=emps[id]; var doj=new Date(e.doj); doj.setHours(0,0,0,0);
+      var over=Math.round((today-doj)/86400000);
+      var d=doneCount(e); var tot=allTasks(e.type).length;
+      return [e.name,e.role||"",e.doj,over+" days",e.type,d+"/"+tot,Math.round(d/tot*100)+"%","OVERDUE"];
+    });
+    html += makeTable(attnRows, ["Name","Role","DOJ","Days Overdue","Type","Tasks","Progress","Status"]) + "<br><br>";
+  }
+
+  // Section 4: Completed
+  var comp=ids.filter(function(id){var tot=allTasks(emps[id].type).length;return doneCount(emps[id])===tot&&tot>0;});
+  if (comp.length) {
+    html += '<div style="page-break-before:always"></div><h2 style="font-family:Arial;color:#1D9E75">Completed</h2>';
+    var compRows=comp.map(function(id){
+      var e=emps[id]; var tot=allTasks(e.type).length;
+      return [e.name,e.role||"",e.dept||"",e.doj||"",e.type,tot+"/"+tot,"Completed"];
+    });
+    html += makeTable(compRows, ["Name","Role","Department","DOJ","Type","Tasks","Status"]) + "<br><br>";
+  }
+
+  // Per checklist type sections
+  TYPES.forEach(function(type){
+    var tids=ids.filter(function(id){return emps[id].type===type;});
+    if (!tids.length) return;
+    html += '<div style="page-break-before:always"></div><h2 style="font-family:Arial">'+esc(type)+'</h2>';
+    var rows=tids.map(function(id){
+      var e=emps[id]; var d=doneCount(e); var tot=allTasks(type).length; var p=tot?Math.round(d/tot*100):0;
+      return [e.name,e.role||"",e.dept||"",e.doj||"",d,tot,p+"%",p===100?"Completed":p>0?"In Progress":"Not Started"];
+    });
+    html += makeTable(rows, ["Name","Role","Dept","DOJ","Done","Total","Progress","Status"]) + "<br><br>";
+  });
+
+  // Per employee checklist
+  ids.forEach(function(id){
+    var e=emps[id]; var ch=e.checks||{}; var tm=e.taskMeta||{};
+    html += '<div style="page-break-before:always"></div>';
+    html += '<h2 style="font-family:Arial">'+esc(e.name)+' &mdash; '+esc(e.type)+'</h2>';
+    html += '<p style="font-family:Arial;font-size:12px">Role: '+esc(e.role||"—")+' | Dept: '+esc(e.dept||"—")+' | DOJ: '+esc(e.doj||"—")+'</p><br>';
+    var rows=[];
+    CHECKLISTS[e.type].forEach(function(phase){
+      phase.tasks.forEach(function(task){
+        var meta=tm[task.id]||{};
+        rows.push([task.n,phase.phase,task.t,meta.assignee||task.own,task.tl,task.cat,meta.deadline||"",ch[task.id]?"Done":"Pending"]);
+      });
+    });
+    html += makeTable(rows, ["#","Phase","Task","Assigned To","Timeline","Category","Deadline","Status"]);
+    var d=doneCount(e); var tot=allTasks(e.type).length;
+    html += '<p style="font-family:Arial;font-size:12px;margin-top:8px"><strong>Progress: '+d+'/'+tot+' tasks ('+( tot?Math.round(d/tot*100):0)+'%)</strong></p><br>';
+  });
+
+  downloadXLS("IMC_HR_Dashboard_"+dateStr+".xls", "IMC HR Ops Dashboard", html);
+}
+
+// ── EXPORT: Individual employee ───────────────────────────────────────────────
+function exportEmployee(id) {
+  var e = emps[id]; if (!e) return;
+  var ch = e.checks||{}; var tm = e.taskMeta||{};
+  var rows = [];
+  CHECKLISTS[e.type].forEach(function(phase){
+    phase.tasks.forEach(function(task){
+      var meta = tm[task.id]||{};
+      rows.push([task.n, phase.phase, task.t, meta.assignee||task.own, task.tl, task.cat, meta.deadline||"", ch[task.id]?"Done":"Pending"]);
+    });
+  });
+  var d = doneCount(e); var tot = allTasks(e.type).length;
+  var title = e.name + " — " + e.type + " | Role: " + (e.role||"—") + " | DOJ: " + (e.doj||"—") + " | Progress: " + d + "/" + tot;
+  downloadXLS(e.name.replace(/\s+/g,"_")+"_Checklist.xls", title, makeTable(rows, ["#","Phase","Task","Assigned To","Timeline","Category","Deadline","Status"]));
+}
+
+// ── EXPORT: By checklist type ─────────────────────────────────────────────────
+function exportByType(type) {
+  var ids = Object.keys(emps).filter(function(id){ return emps[id].type === type; });
+  if (!ids.length) { alert("No employees under " + type + "."); return; }
+  var rows = ids.map(function(id){
+    var e=emps[id]; var d=doneCount(e); var tot=allTasks(type).length; var p=tot?Math.round(d/tot*100):0;
+    return [e.name,e.role||"",e.dept||"",e.doj||"",d,tot,p+"%",p===100?"Completed":p>0?"In Progress":"Not Started"];
+  });
+  downloadXLS(type.replace(/\s+/g,"_")+".xls", type, makeTable(rows, ["Name","Role","Dept","DOJ","Done","Total","Progress","Status"]));
+}
+
+// ── EXPORT: Checklist reference ───────────────────────────────────────────────
+function exportChecklist(type) {
+  var rows = [];
+  CHECKLISTS[type].forEach(function(phase){
+    phase.tasks.forEach(function(task){
+      rows.push([task.n, phase.phase, task.t, task.own, task.tl, task.cat]);
+    });
+  });
+  downloadXLS("Checklist_"+type.replace(/\s+/g,"_")+".xls", type+" — Full Checklist", makeTable(rows, ["#","Phase","Task","Default Owner","Timeline","Category"]));
+}
+
 
 loadData();
 renderSidebar();
