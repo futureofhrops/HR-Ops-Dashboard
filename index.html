@@ -130,6 +130,19 @@ nav{background:#fff;border-bottom:1px solid #E4E1DA;padding:0 24px;display:flex;
 .toast.ok{background:#E1F5EE;color:#065F46;border:1px solid #9FE1CB}
 .toast.err{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
 .emptystate{padding:32px;text-align:center;color:#9E9B94;font-size:13px}
+.grplbl{font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;letter-spacing:.07em;padding:10px 10px 4px}
+.grpdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.task-meta{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.task-owner{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#1A1917}
+.task-owner-av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}
+.task-deadline{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:500}
+.task-deadline.ok{background:#E1F5EE;color:#065F46}
+.task-deadline.soon{background:#FFFBEB;color:#92400E}
+.task-deadline.overdue{background:#FEF2F2;color:#DC2626;font-weight:700}
+.task-deadline.none{background:#F0EEE9;color:#9E9B94}
+.dl-picker{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;color:#6B6860;cursor:pointer;padding:0;outline:none}
+.assign-input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;color:#1A1917;font-weight:600;outline:none;width:90px;cursor:pointer}
+.assign-input::placeholder{color:#9E9B94;font-weight:400}
 </style>
 </head>
 <body>
@@ -383,34 +396,42 @@ function showToast(msg, type) {
 // ── SIDEBAR ──────────────────────────────────────────────────────────────────
 function renderSidebar() {
   var q = document.getElementById("searchBox").value.toLowerCase();
-  var ids = Object.keys(emps).filter(function(id){
+  var allIds = Object.keys(emps);
+  var ids = allIds.filter(function(id){
     return !q || emps[id].name.toLowerCase().indexOf(q) !== -1;
   });
-  document.getElementById("empCount").textContent = Object.keys(emps).length;
+  document.getElementById("empCount").textContent = allIds.length;
   var el = document.getElementById("empList");
   if (!ids.length) {
     el.innerHTML = '<div class="emptystate">' + (q ? "No results" : "No employees yet") + '</div>';
     return;
   }
   var html = "";
-  for (var i = 0; i < ids.length; i++) {
-    var id = ids[i];
-    var e = emps[id];
-    var p = pct(e);
-    var a = avColor(id);
-    var active = selectedId === id ? " active" : "";
-    html += '<div class="empitem' + active + '" data-id="' + id + '">'
-      + '<div class="av" style="background:' + a.bg + ';color:' + a.c + '">' + initials(e.name) + '</div>'
-      + '<div class="einfo">'
-      + '<div class="ename">' + e.name + '</div>'
-      + '<div class="erole">' + (e.role || e.type) + '</div>'
-      + '<div class="minibar"><div class="minifill" style="width:' + p + '%"></div></div>'
-      + '</div>'
-      + '<div class="epct">' + p + '%</div>'
-      + '</div>';
+  // Group by checklist type
+  for (var t = 0; t < TYPES.length; t++) {
+    var type = TYPES[t];
+    var col = TYPE_COLORS[type];
+    var groupIds = ids.filter(function(id){ return emps[id].type === type; });
+    if (!groupIds.length) continue;
+    html += '<div class="grplbl"><span class="grpdot" style="background:' + col.dot + '"></span>' + type.replace("International ","Intl. ") + ' <span style="font-weight:400;opacity:.7">(' + groupIds.length + ')</span></div>';
+    for (var i = 0; i < groupIds.length; i++) {
+      var id = groupIds[i];
+      var e = emps[id];
+      var p = pct(e);
+      var a = avColor(id);
+      var active = selectedId === id ? " active" : "";
+      html += '<div class="empitem' + active + '" data-id="' + id + '">'
+        + '<div class="av" style="background:' + a.bg + ';color:' + a.c + '">' + initials(e.name) + '</div>'
+        + '<div class="einfo">'
+        + '<div class="ename">' + e.name + '</div>'
+        + '<div class="erole">' + (e.role || '—') + '</div>'
+        + '<div class="minibar"><div class="minifill" style="width:' + p + '%"></div></div>'
+        + '</div>'
+        + '<div class="epct">' + p + '%</div>'
+        + '</div>';
+    }
   }
   el.innerHTML = html;
-  // wire clicks
   var items = el.querySelectorAll(".empitem");
   for (var j = 0; j < items.length; j++) {
     items[j].addEventListener("click", function(){
@@ -604,14 +625,34 @@ function showEmployee(id) {
     for (var tk = 0; tk < phase.tasks.length; tk++) {
       var task = phase.tasks[tk];
       var isDone = !!ch[task.id];
+      var tm = (e.taskMeta && e.taskMeta[task.id]) ? e.taskMeta[task.id] : {};
+      var assignee = tm.assignee || task.own;
+      var deadline = tm.deadline || '';
+      var dlClass = 'none', dlTxt = 'Set deadline';
+      if (deadline) {
+        var today = new Date(); today.setHours(0,0,0,0);
+        var dlDate = new Date(deadline);
+        var diff = Math.round((dlDate - today) / 86400000);
+        if (diff < 0) { dlClass = 'overdue'; dlTxt = 'Overdue by ' + Math.abs(diff) + 'd'; }
+        else if (diff <= 3) { dlClass = 'soon'; dlTxt = 'Due in ' + diff + 'd'; }
+        else { dlClass = 'ok'; dlTxt = dlDate.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+      }
+      var ownAv = avColor(assignee);
       html += '<div class="task' + (isDone ? ' done' : '') + '" data-empid="' + id + '" data-taskid="' + task.id + '">'
         + '<div class="tcb"><svg class="cksvg" viewBox="0 0 10 8"><polyline points="1,4 3.5,7 9,1"/></svg></div>'
         + '<div style="flex:1;min-width:0">'
         + '<div class="ttxt">' + task.n + '. ' + task.t + '</div>'
-        + '<div class="tags">'
-        + '<span class="tag tago">' + task.own + '</span>'
+        + '<div class="task-meta">'
+        + '<div class="task-owner">'
+        + '<div class="task-owner-av" style="background:' + ownAv.bg + ';color:' + ownAv.c + '">' + initials(assignee) + '</div>'
+        + '<input class="assign-input" data-empid="' + id + '" data-taskid="' + task.id + '" value="' + assignee + '" placeholder="Assign to..." title="Click to reassign" />'
+        + '</div>'
         + '<span class="tag tagl">' + task.tl + '</span>'
         + '<span class="tag tagc">' + task.cat + '</span>'
+        + '<span class="task-deadline ' + dlClass + '">'
+        + (deadline ? dlTxt : '<input type="date" class="dl-picker" data-empid="' + id + '" data-taskid="' + task.id + '" value="' + deadline + '" title="Set deadline" />')
+        + (deadline ? ' <input type="date" class="dl-picker" data-empid="' + id + '" data-taskid="' + task.id + '" value="' + deadline + '" title="Change deadline" style="width:0;opacity:0;position:absolute" />' : '')
+        + '</span>'
         + '</div></div></div>';
     }
     html += '</div>';
@@ -627,9 +668,39 @@ function showEmployee(id) {
   // Wire task checkboxes
   var taskEls = document.querySelectorAll(".task[data-empid]");
   for (var te = 0; te < taskEls.length; te++) {
-    taskEls[te].addEventListener("click", function(){
+    taskEls[te].addEventListener("click", function(ev){
+      if (ev.target.classList.contains("assign-input") || ev.target.classList.contains("dl-picker")) return;
       toggleTask(this.getAttribute("data-empid"), this.getAttribute("data-taskid"));
     });
+  }
+  // Wire deadline pickers
+  var dlPickers = document.querySelectorAll(".dl-picker");
+  for (var dp = 0; dp < dlPickers.length; dp++) {
+    dlPickers[dp].addEventListener("change", function(ev){
+      ev.stopPropagation();
+      var eid = this.getAttribute("data-empid");
+      var tid = this.getAttribute("data-taskid");
+      if (!emps[eid].taskMeta) emps[eid].taskMeta = {};
+      if (!emps[eid].taskMeta[tid]) emps[eid].taskMeta[tid] = {};
+      emps[eid].taskMeta[tid].deadline = this.value;
+      saveData();
+      showEmployee(eid);
+    });
+  }
+  // Wire assignee inputs
+  var assignInputs = document.querySelectorAll(".assign-input");
+  for (var ai = 0; ai < assignInputs.length; ai++) {
+    assignInputs[ai].addEventListener("change", function(ev){
+      ev.stopPropagation();
+      var eid = this.getAttribute("data-empid");
+      var tid = this.getAttribute("data-taskid");
+      if (!emps[eid].taskMeta) emps[eid].taskMeta = {};
+      if (!emps[eid].taskMeta[tid]) emps[eid].taskMeta[tid] = {};
+      emps[eid].taskMeta[tid].assignee = this.value.trim();
+      saveData();
+      showEmployee(eid);
+    });
+    assignInputs[ai].addEventListener("click", function(ev){ ev.stopPropagation(); });
   }
 }
 
