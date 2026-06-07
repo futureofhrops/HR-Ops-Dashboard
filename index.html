@@ -1995,30 +1995,16 @@ function showEditModal(id) {
       + fld('mDOJ','Date of joining *','date','',true,e.doj||'');
 
   } else if (type === 'International Incoming') {
-    // Determine current transfer type base value
-    var ttBase = '';
-    if (e.transferType) {
-      if (e.transferType.indexOf('Temporary') !== -1) ttBase = 'Temporary Transfer';
-      else if (e.transferType.indexOf('Permanent') !== -1) ttBase = 'Permanent Transfer';
-    }
-    var region1 = '', region2 = '';
-    if (ttBase === 'Temporary Transfer' && e.fromRegion) region1 = e.fromRegion;
-    if (ttBase === 'Permanent Transfer' && e.fromRegion) region2 = e.fromRegion;
-
     fields = badge
       + fld('mName','Full name *','text','e.g. Priya Sharma',true,e.name||'')
-      + fld('mRole','Position / designation *','text','e.g. Analyst',true,e.role||'')
+      + fld('mRole','Position / designation *','text','e.g. Senior Trader',true,e.role||'')
       + fld('mManager','Manager *','text','e.g. Jan de Vries',true,e.manager||'')
       + fld('mTeam','Team *','text','e.g. Equity Derivatives',true,e.team||'')
       + fld('mDOJ','Transfer date *','date','',true,e.doj||'')
-      + radioFieldWithText('mTransferType','Transfer type *',[
-          {value:'Temporary Transfer', textId:'mTransferRegionII1', placeholder:'e.g. Netherlands, Amsterdam'},
-          {value:'Permanent Transfer',  textId:'mTransferRegionII2', placeholder:'e.g. Germany, Frankfurt'}
-        ], true)
-      + '<div id="mTempEndWrap" style="display:none">'
-      + fld('mTempEnd','Temporary assignment end date *','date','',false,e.tempEnd||'')
-      + '<div id="mAssignDays" style="display:none;margin-top:4px;padding:6px 10px;background:#E1F5EE;border-radius:8px;font-size:12px;font-weight:600;color:#065F46"></div>'
-      + '</div>';
+      + radioFieldWithTextAndDate('mTransferType','Transfer type *',[
+          {value:'Temporary Transfer', textId:'mTransferRegionII1', placeholder:'e.g. Netherlands, Amsterdam', hasDate:true},
+          {value:'Permanent Transfer',  textId:'mTransferRegionII2', placeholder:'e.g. Germany, Frankfurt', hasDate:false}
+        ], true);
 
   } else if (type === 'Local Offboarding') {
     var glChecked = e.gardenLeave && e.gardenLeave !== 'No';
@@ -2069,26 +2055,38 @@ function showEditModal(id) {
   // Pre-fill radio buttons
   if (type === 'International Incoming' || type === 'International Outgoing' || type === 'Local Transfer Out') {
     var ttVal = e.transferType || '';
-    // Extract base value (before " — ")
     var baseVal = ttVal.indexOf(' — ') !== -1 ? ttVal.split(' — ')[0] : ttVal;
     var radios = document.querySelectorAll("input[name='mTransferType']");
     for (var ri = 0; ri < radios.length; ri++) {
       if (radios[ri].value === baseVal) {
         radios[ri].checked = true;
         // Show the corresponding text wrap
-        var textId = radios[ri].getAttribute("data-textid");
+        var textId = radios[ri].getAttribute ? radios[ri].getAttribute("data-textid") : null;
         if (textId) {
           var wrap = document.getElementById(textId + "Wrap");
           if (wrap) wrap.style.display = "block";
           // Pre-fill region text
           var regionEl = document.getElementById(textId);
-          if (regionEl && e.fromRegion) regionEl.value = e.fromRegion;
-          if (regionEl && e.toRegion)   regionEl.value = e.toRegion;
+          if (regionEl) {
+            if (e.fromRegion) regionEl.value = e.fromRegion;
+            if (e.toRegion)   regionEl.value = e.toRegion;
+          }
         }
-        // Show temp end date wrap
+        // For radioFieldWithTextAndDate — mTempEnd is inside the option wrap (not separate div)
+        // Pre-fill end date directly
         var isTmp = baseVal === "Temporary Transfer" || baseVal === "Temporary";
-        var tempWrap = document.getElementById("mTempEndWrap");
-        if (tempWrap && isTmp) tempWrap.style.display = "block";
+        if (isTmp) {
+          // Show the temp end wrap (for radioFieldWithDate used in LTO)
+          var tempWrap = document.getElementById("mTempEndWrap");
+          if (tempWrap) tempWrap.style.display = "block";
+          // Pre-fill end date (works for both radioFieldWithTextAndDate and radioFieldWithDate)
+          var tempEndEl = document.getElementById("mTempEnd");
+          if (tempEndEl && e.tempEnd) tempEndEl.value = e.tempEnd;
+          // Show duration if both dates set
+          if (e.doj && e.tempEnd) {
+            setTimeout(function(){ calcAssignmentDuration(e.doj, e.tempEnd || ''); }, 50);
+          }
+        }
         break;
       }
     }
