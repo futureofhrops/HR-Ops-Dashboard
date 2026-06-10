@@ -345,28 +345,6 @@ var CHECKLISTS = {
     {id:"ii36",n:36,own:"HR Ops Team",tl:"D+60 Days",dlOffset:60,cat:"Feedback",t:"Send feedback survey to employee via Microsoft Forms."}
   ]}
 ],
-"Local Transfer Out": [
-  {phase:"Pre transfer", tasks:[
-    {id:"lt1",n:1,own:"HR Operations",tl:"On receipt from Business Leads",dlOffset:null,cat:"Communication",t:"Acknowledge transfer details and confirm with the employee and manager."},
-    {id:"lt2",n:2,own:"HR Operations",tl:"On receipt from Business Leads",dlOffset:null,cat:"Transfer Letter",t:"Draft and obtain signatures on the Transfer Letter."},
-    {id:"lt3",n:3,own:"HR Operations",tl:"On receipt from Business Leads",dlOffset:null,cat:"Workday",t:"Initiate the transfer action in Workday and update reporting line."},
-    {id:"lt4",n:4,own:"HR Operations",tl:"On receipt from Business Leads",dlOffset:null,cat:"Leaves",t:"Reconcile available leave balance before transfer date."},
-    {id:"lt5",n:5,own:"HR Operations",tl:"On receipt from Business Leads",dlOffset:null,cat:"Benefits",t:"Communicate any changes to benefits or allowances post-transfer."},
-    {id:"lt6",n:6,own:"HRBP",tl:"On receipt from Business Leads",dlOffset:null,cat:"Communication",t:"Confirm transfer with receiving team and HRBP at destination."},
-    {id:"lt7",n:7,own:"Manager",tl:"Notice period",dlOffset:null,cat:"Work Handover",t:"Ensure complete work handover to current team before transfer date."}
-  ]},
-  {phase:"Transfer day", tasks:[
-    {id:"lt8",n:8,own:"HR Operations",tl:"On transfer date",dlOffset:0,cat:"System Access",t:"Update system access and cost centre in line with new role."},
-    {id:"lt9",n:9,own:"HR Operations",tl:"On transfer date",dlOffset:0,cat:"Communication",t:"Send transfer announcement to relevant stakeholders and distribution lists."},
-    {id:"lt10",n:10,own:"IT Team",tl:"On transfer date",dlOffset:0,cat:"IT Setup",t:"Update IT access rights and team channels for the new position."},
-    {id:"lt11",n:11,own:"HR Operations",tl:"On transfer date",dlOffset:0,cat:"Connect Post",t:"Update the employee profile and post on Connect platform."}
-  ]},
-  {phase:"Post transfer", tasks:[
-    {id:"lt12",n:12,own:"HR Operations",tl:"Within 1st week",dlOffset:null,cat:"Confirmation",t:"Confirm successful transition with receiving manager and HRBP."},
-    {id:"lt13",n:13,own:"HR Operations",tl:"Within 1st month",dlOffset:null,cat:"Follow Up",t:"Conduct a 30-day check-in with the employee post transfer."},
-    {id:"lt14",n:14,own:"HR Operations",tl:"Post transfer",dlOffset:null,cat:"Workday",t:"Close all pending Workday actions related to the transfer."},
-    {id:"lt15",n:15,own:"HR Operations",tl:"Post transfer",dlOffset:null,cat:"Documentation",t:"Archive transfer documentation in the employee's Box folder."}
-  ],
 "Local Offboarding": [
   {phase:"Upon Confirmation", tasks:[
     {id:"of1",n:1,own:"HR Ops Team",tl:"Upon Confirmation",dlOffset:null,cat:"Notice Period",t:"Confirm: Notice Period or Immediate Release — Is employee serving notice or leaving same day?"},
@@ -417,9 +395,14 @@ var CHECKLISTS = {
     {id:"io18",n:18,own:"HR Ops Team",tl:"After transfer date confirmed",dlOffset:3,cat:"Insurance",t:"Email William Russell SPOC (Joe Holden) to initiate policy cancellation after transfer date confirmed by HRBP and Payroll."},
     {id:"io19",n:19,own:"HR Ops Team",tl:"After F&F confirmed",dlOffset:7,cat:"Visa",t:"Confirm with HRBP and Payroll that all India obligations are settled before initiating visa cancellation."}
   ]}
-]}
+],
+"Local Transfer Out": [
+  {phase:"Checklist Pending", tasks:[
+    {id:"lt1",n:1,own:"HR Ops Team",tl:"Pending",dlOffset:null,cat:"Admin",t:"Local Transfer Out checklist not yet uploaded — please contact HR Ops to add tasks."}
+  ]}
 ]
 };
+
 
 // -- STATE --
 var emps = {};
@@ -1401,7 +1384,7 @@ function showArchivedEmployee(archId, fromType) {
         + "<div class=\"task-meta\">"
         + "<span class=\"tag tago\">" + assignee2 + "</span>"
         + "<span class=\"tag tagl\">" + task.tl + "</span>"
-        + "<span class=\"tag tagc\">" + task.cat + "</span>"
+
         + (comment2?"<span class=\"tag\" style=\"background:#FDF4FF;color:#7C3AED\">&#128172; "+comment2+"</span>":"")
         + "</div></div></div>";
     }
@@ -1760,7 +1743,7 @@ function showEmployee(id) {
         + "<input class=\"assign-input\" data-empid=\"" + id + "\" data-taskid=\"" + task.id + "\" value=\"" + assignee + "\" placeholder=\"Assign to...\" />"
         + "</div>"
         + "<span class=\"tag tagl\">" + task.tl + "</span>"
-        + "<span class=\"tag tagc\">" + task.cat + "</span>"
+
         + "<span class=\"task-deadline " + dlClass + "\">"
         + (deadline
             ? dlTxt + (task.dlOffset !== null && task.dlOffset !== undefined && !tm.deadline ? " <span style=\"font-size:9px;opacity:.6\">(D" + (task.dlOffset < 0 ? task.dlOffset : task.dlOffset === 0 ? "" : "+" + task.dlOffset) + ")</span>" : "")
