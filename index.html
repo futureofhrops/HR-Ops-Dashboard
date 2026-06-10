@@ -1906,30 +1906,38 @@ function markEmployeeComplete(id) {
 
 function deleteEmployee(id) {
   var e = emps[id]; if (!e) return;
-  var name = e.name;
-  openModal(
-    '<div class="modtitle">Remove employee</div>'
-    + '<div style="font-size:13px;color:#4A5568;margin-bottom:20px">Remove <strong>' + name + '</strong>? They will be moved to the Deleted records for audit purposes.</div>'
-    + '<div class="mbtns">'
-    + '<button class="mbtn" id="delCancel">Cancel</button>'
-    + '<button class="mbtn" id="delConfirm" style="background:#DC2626;color:#fff;border-color:#DC2626">&#10005; Remove</button>'
-    + '</div>'
-  );
-  document.getElementById("delCancel").addEventListener("click", function(e){ e.stopPropagation(); closeModal(); });
-  document.getElementById("delConfirm").addEventListener("click", function(e){
-    e.stopPropagation();
-    var emp = emps[id]; if (!emp) { closeModal(); return; }
-    emp.deletedAt = new Date().toISOString();
-    emp.doneAtDeletion = doneCount(emp);
-    emp.totalAtDeletion = allTasks(emp.type).length;
-    deletedEmps[id] = JSON.parse(JSON.stringify(emp));
+  // Show inline confirmation bar at top of page
+  var bar = document.getElementById("delConfirmBar");
+  if (bar) { bar.parentNode.removeChild(bar); }
+  var div = document.createElement("div");
+  div.id = "delConfirmBar";
+  div.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:#DC2626;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;font-family:DM Sans,sans-serif;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,0.2)";
+  div.innerHTML = '<span><strong>Remove ' + e.name + '?</strong> They will be moved to Deleted records for audit purposes.</span>'
+    + '<div style="display:flex;gap:10px">'
+    + '<button id="delCancelBar" style="padding:7px 16px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);border-radius:8px;color:#fff;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">Cancel</button>'
+    + '<button id="delConfirmBar2" style="padding:7px 16px;background:#fff;border:none;border-radius:8px;color:#DC2626;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#10005; Confirm Remove</button>'
+    + '</div>';
+  document.body.appendChild(div);
+  document.getElementById("delCancelBar").onclick = function(){
+    var b = document.getElementById("delConfirmBar"); if(b) b.parentNode.removeChild(b);
+  };
+  document.getElementById("delConfirmBar2").onclick = function(){
+    var b = document.getElementById("delConfirmBar"); if(b) b.parentNode.removeChild(b);
+    var emp = emps[id]; if (!emp) return;
+    var empName = emp.name;
+    var snapshot = JSON.parse(JSON.stringify(emp));
+    snapshot.deletedAt = new Date().toISOString();
+    snapshot.doneAtDeletion = doneCount(emp);
+    snapshot.totalAtDeletion = allTasks(emp.type).length;
+    deletedEmps[id] = snapshot;
     delete emps[id];
-    saveData(); saveDeleted();
+    saveData();
+    saveDeleted();
     selectedId = null;
-    closeModal();
-    showToast(name + " removed.", "ok");
-    renderSidebar(); showCompletedPage(null);
-  });
+    showToast(empName + " moved to Deleted records.", "ok");
+    renderSidebar();
+    showCompletedPage(null);
+  };
 }
 
 // ── FORM HELPERS ──────────────────────────────────────────────────────────────
