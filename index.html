@@ -1134,6 +1134,7 @@ function showHome() {
   for(var ctc=0;ctc<compTypeCards.length;ctc++) compTypeCards[ctc].addEventListener("click",function(){ showCompletedPage(this.getAttribute("data-comptype")); });
   // ── Checklist update banner ───────────────────────────────────────────────
   var pendingCount = Object.keys(pendingUpdates).length;
+  
   var updateBanner = "";
   if (pendingCount > 0) {
     updateBanner = '<div id="updateBanner" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#FFFBEB;border:1.5px solid #F59E0B;border-radius:12px;margin-bottom:16px">'
@@ -1397,6 +1398,7 @@ function showArchivedEmployee(archId, fromType) {
   });
 }
 
+
 function showCompletedPage(filterType) {
   selectedId = null;
   renderSidebar();
@@ -1414,10 +1416,96 @@ function showCompletedPage(filterType) {
   html += '</div>';
   html += '<div class="hsub" style="margin-bottom:18px">'+displayIds.length+' completed employee'+(displayIds.length!==1?'s':'')+(filterType?' &middot; '+filterType:'')+'</div>';
 
+
+  // Show empty state if no completed employees
   if (!displayIds.length) {
     html += '<div class="emptystate" style="background:#F0FDF4;border-radius:12px;border:1px solid #9FE1CB">No completed employees yet.</div>';
+  }
 
-  // ── DELETED SECTION ──────────────────────────────────────────────────────
+    // Group by checklist type
+  var typesToShow = filterType ? [filterType] : TYPES;
+  for (var t = 0; t < typesToShow.length; t++) {
+    var ctype = typesToShow[t];
+    var ccol = TYPE_COLORS[ctype]||{bg:"#F0EEE9",c:"#6B6860",dot:"#9E9B94"};
+    var ctypeIds = displayIds.filter(function(id){ return archived[id].type === ctype; });
+    if (!ctypeIds.length) continue;
+    var ctKey = "comp_page_"+ctype.replace(/ /g,"_");
+    var ctOpen = localStorage.getItem(ctKey) !== "0";
+    html += '<div style="margin-bottom:12px;border:1px solid '+ccol.dot+'44;border-radius:14px;overflow:hidden">'
+      + '<div class="comp-page-type-toggle" data-grpkey="'+ctKey+'" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:'+ccol.bg+';cursor:pointer">'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<div style="width:8px;height:8px;border-radius:50%;background:'+ccol.dot+'"></div>'
+      + '<span style="font-size:13px;font-weight:600;color:'+ccol.c+'">'+ctype+'</span>'
+      + '<span style="font-size:11px;font-weight:600;background:'+ccol.dot+'33;color:'+ccol.c+';padding:2px 8px;border-radius:8px">'+ctypeIds.length+'</span>'
+      + '</div>'
+      + '<span class="grp-chevron" style="color:'+ccol.c+';transform:'+(ctOpen?'':'rotate(-90deg)')+'">&#9660;</span>'
+      + '</div>'
+      + '<div class="comp-page-type-body" style="max-height:'+(ctOpen?'5000px':'0')+';overflow:hidden">'
+      + '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+      + '<thead><tr style="background:#fafafa">'
+      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">Employee</th>'
+      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">DOJ</th>'
+      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">Completed on</th>'
+      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">Tasks</th>'
+      + '<th style="padding:8px 16px;border-bottom:1px solid #E4E1DA"></th>'
+      + '</tr></thead><tbody>';
+    for (var ci = 0; ci < ctypeIds.length; ci++) {
+      var aid = ctypeIds[ci]; var ae = archived[aid]; var aa = avColor(aid); var adone = doneCount(ae);
+      var adate = ae.archivedAt ? new Date(ae.archivedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "—";
+      var atot = allTasks(ctype).length;
+      html += '<tr class="arch-emp-row" data-archid="'+aid+'" style="border-bottom:1px solid #F0EEE9;cursor:pointer;transition:background .12s">'
+        + '<td style="padding:10px 16px"><div style="display:flex;align-items:center;gap:8px">'
+        + '<div style="width:28px;height:28px;border-radius:50%;background:'+aa.bg+';color:'+aa.c+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+initials(ae.name)+'</div>'
+        + '<div><div style="font-weight:500;color:#1D9E75">'+ae.name+'</div><div style="font-size:11px;color:#9E9B94">'+(ae.role||'—')+'</div></div></div></td>'
+        + '<td style="padding:10px 16px;color:#6B6860;font-size:12px">'+(ae.doj||'—')+'</td>'
+        + '<td style="padding:10px 16px"><div style="display:flex;align-items:center;gap:6px"><div style="width:50px;height:4px;background:#E4E1DA;border-radius:2px;overflow:hidden"><div style="height:100%;background:'+(adone===atot?'#1D9E75':'#F59E0B')+';width:'+(atot?Math.round(adone/atot*100):0)+'%"></div></div><span style="font-size:11px;font-weight:600;color:'+(adone===atot?'#1D9E75':'#92400E')+'">'+(atot?Math.round(adone/atot*100):0)+'%</span></div><div style="font-size:10px;color:#9E9B94;margin-top:2px">'+(adone===atot?'&#10003;':'&#9888;')+' '+adate+'</div></td>'
+        + '<td style="padding:10px 16px;font-family:DM Mono,monospace;font-size:12px;color:'+(adone===atot?'#1D9E75':'#92400E')+'">'+adone+'/'+atot+'</td>'
+        + '<td style="padding:10px 16px"><span style="font-size:11px;color:#9E9B94">View &#8594;</span></td>'
+        + '</tr>';
+    }
+    html += '</tbody></table></div></div>';
+  }
+
+  // Wire employee row clicks — open read-only checklist view
+  var archRows = document.querySelectorAll(".arch-emp-row");
+  for (var ar = 0; ar < archRows.length; ar++) {
+    archRows[ar].addEventListener("click", function(){
+      showArchivedEmployee(this.getAttribute("data-archid"), filterType);
+    });
+  }
+
+  // Wire deleted type toggles
+  var delToggles = document.querySelectorAll(".del-type-toggle");
+  for (var dlt=0; dlt<delToggles.length; dlt++) {
+    delToggles[dlt].addEventListener("click", function(){
+      var key = this.getAttribute("data-grpkey");
+      var body = this.nextElementSibling;
+      var chev = this.querySelector(".grp-chevron");
+      if (!body) return;
+      var isOpen = body.style.maxHeight !== "0px" && body.style.maxHeight !== "0";
+      body.style.maxHeight = isOpen ? "0" : "3000px";
+      if (chev) chev.style.transform = isOpen ? "rotate(-90deg)" : "";
+      localStorage.setItem(key, isOpen ? "0" : "1");
+    });
+  }
+
+  // Wire type toggles on completed page
+  var compPageToggles = document.querySelectorAll(".comp-page-type-toggle");
+  for (var cpt = 0; cpt < compPageToggles.length; cpt++) {
+    compPageToggles[cpt].addEventListener("click", function(){
+      var key = this.getAttribute("data-grpkey");
+      var body = this.nextElementSibling;
+      var chev = this.querySelector(".grp-chevron");
+      if (!body) return;
+      var isOpen = body.style.maxHeight !== "0px" && body.style.maxHeight !== "0";
+      body.style.maxHeight = isOpen ? "0" : "5000px";
+      if (chev) chev.style.transform = isOpen ? "rotate(-90deg)" : "";
+      localStorage.setItem(key, isOpen ? "0" : "1");
+    });
+  }
+
+
+    // ── DELETED SECTION ──────────────────────────────────────────────────────
   var delIds = filterType
     ? Object.keys(deletedEmps).filter(function(id){ return deletedEmps[id].type === filterType; })
     : Object.keys(deletedEmps);
@@ -1477,57 +1565,7 @@ function showCompletedPage(filterType) {
       }
     }
     html += '</div>';
-  }
 
-  
-    document.getElementById("mainArea").innerHTML = html;
-    document.getElementById("backToHomeComp").addEventListener("click", function(){ showHome(); });
-    return;
-  }
-
-  // Group by checklist type
-  var typesToShow = filterType ? [filterType] : TYPES;
-  for (var t = 0; t < typesToShow.length; t++) {
-    var ctype = typesToShow[t];
-    var ccol = TYPE_COLORS[ctype]||{bg:"#F0EEE9",c:"#6B6860",dot:"#9E9B94"};
-    var ctypeIds = displayIds.filter(function(id){ return archived[id].type === ctype; });
-    if (!ctypeIds.length) continue;
-    var ctKey = "comp_page_"+ctype.replace(/ /g,"_");
-    var ctOpen = localStorage.getItem(ctKey) !== "0";
-    html += '<div style="margin-bottom:12px;border:1px solid '+ccol.dot+'44;border-radius:14px;overflow:hidden">'
-      + '<div class="comp-page-type-toggle" data-grpkey="'+ctKey+'" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:'+ccol.bg+';cursor:pointer">'
-      + '<div style="display:flex;align-items:center;gap:8px">'
-      + '<div style="width:8px;height:8px;border-radius:50%;background:'+ccol.dot+'"></div>'
-      + '<span style="font-size:13px;font-weight:600;color:'+ccol.c+'">'+ctype+'</span>'
-      + '<span style="font-size:11px;font-weight:600;background:'+ccol.dot+'33;color:'+ccol.c+';padding:2px 8px;border-radius:8px">'+ctypeIds.length+'</span>'
-      + '</div>'
-      + '<span class="grp-chevron" style="color:'+ccol.c+';transform:'+(ctOpen?'':'rotate(-90deg)')+'">&#9660;</span>'
-      + '</div>'
-      + '<div class="comp-page-type-body" style="max-height:'+(ctOpen?'5000px':'0')+';overflow:hidden">'
-      + '<table style="width:100%;border-collapse:collapse;font-size:13px">'
-      + '<thead><tr style="background:#fafafa">'
-      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">Employee</th>'
-      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">DOJ</th>'
-      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">Completed on</th>'
-      + '<th style="padding:8px 16px;text-align:left;font-size:10px;font-weight:700;color:#9E9B94;text-transform:uppercase;border-bottom:1px solid #E4E1DA">Tasks</th>'
-      + '<th style="padding:8px 16px;border-bottom:1px solid #E4E1DA"></th>'
-      + '</tr></thead><tbody>';
-    for (var ci = 0; ci < ctypeIds.length; ci++) {
-      var aid = ctypeIds[ci]; var ae = archived[aid]; var aa = avColor(aid); var adone = doneCount(ae);
-      var adate = ae.archivedAt ? new Date(ae.archivedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "—";
-      var atot = allTasks(ctype).length;
-      html += '<tr class="arch-emp-row" data-archid="'+aid+'" style="border-bottom:1px solid #F0EEE9;cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'#F0FDF4\'" onmouseout="this.style.background=\'\'">'
-        + '<td style="padding:10px 16px"><div style="display:flex;align-items:center;gap:8px">'
-        + '<div style="width:28px;height:28px;border-radius:50%;background:'+aa.bg+';color:'+aa.c+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+initials(ae.name)+'</div>'
-        + '<div><div style="font-weight:500;color:#1D9E75">'+ae.name+'</div><div style="font-size:11px;color:#9E9B94">'+(ae.role||'—')+'</div></div></div></td>'
-        + '<td style="padding:10px 16px;color:#6B6860;font-size:12px">'+(ae.doj||'—')+'</td>'
-        + '<td style="padding:10px 16px"><div style="display:flex;align-items:center;gap:6px"><div style="width:50px;height:4px;background:#E4E1DA;border-radius:2px;overflow:hidden"><div style="height:100%;background:'+(adone===atot?'#1D9E75':'#F59E0B')+';width:'+(atot?Math.round(adone/atot*100):0)+'%"></div></div><span style="font-size:11px;font-weight:600;color:'+(adone===atot?'#1D9E75':'#92400E')+'">'+(atot?Math.round(adone/atot*100):0)+'%</span></div><div style="font-size:10px;color:#9E9B94;margin-top:2px">'+(adone===atot?'&#10003;':'&#9888;')+' '+adate+'</div></td>'
-        + '<td style="padding:10px 16px;font-family:DM Mono,monospace;font-size:12px;color:'+(adone===atot?'#1D9E75':'#92400E')+'">'+adone+'/'+atot+'</td>'
-        + '<td style="padding:10px 16px"><span style="font-size:11px;color:#9E9B94">View &#8594;</span></td>'
-        + '</tr>';
-    }
-    html += '</tbody></table></div></div>';
-  }
 
   document.getElementById("mainArea").innerHTML = html;
 
@@ -1570,6 +1608,7 @@ function showCompletedPage(filterType) {
       localStorage.setItem(key, isOpen ? "0" : "1");
     });
   }
+}
 }
 
 function showFilteredType(type) {
@@ -1904,40 +1943,47 @@ function markEmployeeComplete(id) {
   showHome();
 }
 
+var _pendingDeleteId = null;
 function deleteEmployee(id) {
   var e = emps[id]; if (!e) return;
-  // Show inline confirmation bar at top of page
+  _pendingDeleteId = id;
   var bar = document.getElementById("delConfirmBar");
-  if (bar) { bar.parentNode.removeChild(bar); }
+  if (bar) bar.parentNode.removeChild(bar);
   var div = document.createElement("div");
   div.id = "delConfirmBar";
   div.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:#DC2626;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;font-family:DM Sans,sans-serif;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,0.2)";
-  div.innerHTML = '<span><strong>Remove ' + e.name + '?</strong> They will be moved to Deleted records for audit purposes.</span>'
+  div.innerHTML = '<span><strong>Remove ' + e.name + '?</strong> They will be moved to Deleted records for audit.</span>'
     + '<div style="display:flex;gap:10px">'
-    + '<button id="delCancelBar" style="padding:7px 16px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);border-radius:8px;color:#fff;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">Cancel</button>'
-    + '<button id="delConfirmBar2" style="padding:7px 16px;background:#fff;border:none;border-radius:8px;color:#DC2626;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#10005; Confirm Remove</button>'
+    + '<button onclick="cancelDeleteEmployee()" style="padding:7px 16px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);border-radius:8px;color:#fff;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">Cancel</button>'
+    + '<button onclick="confirmDeleteEmployee()" style="padding:7px 16px;background:#fff;border:none;border-radius:8px;color:#DC2626;font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#10005; Confirm Remove</button>'
     + '</div>';
   document.body.appendChild(div);
-  document.getElementById("delCancelBar").onclick = function(){
-    var b = document.getElementById("delConfirmBar"); if(b) b.parentNode.removeChild(b);
-  };
-  document.getElementById("delConfirmBar2").onclick = function(){
-    var b = document.getElementById("delConfirmBar"); if(b) b.parentNode.removeChild(b);
-    var emp = emps[id]; if (!emp) return;
-    var empName = emp.name;
-    var snapshot = JSON.parse(JSON.stringify(emp));
-    snapshot.deletedAt = new Date().toISOString();
-    snapshot.doneAtDeletion = doneCount(emp);
-    snapshot.totalAtDeletion = allTasks(emp.type).length;
-    deletedEmps[id] = snapshot;
-    delete emps[id];
-    saveData();
-    saveDeleted();
-    selectedId = null;
-    showToast(empName + " moved to Deleted records.", "ok");
-    renderSidebar();
-    showCompletedPage(null);
-  };
+}
+function cancelDeleteEmployee() {
+  var bar = document.getElementById("delConfirmBar");
+  if (bar) bar.parentNode.removeChild(bar);
+  _pendingDeleteId = null;
+}
+function confirmDeleteEmployee() {
+  var bar = document.getElementById("delConfirmBar");
+  if (bar) bar.parentNode.removeChild(bar);
+  var id = _pendingDeleteId; if (!id) {
+ return; }
+  var emp = emps[id]; if (!emp) return;
+  var empName = emp.name;
+  var snapshot = JSON.parse(JSON.stringify(emp));
+  snapshot.deletedAt = new Date().toISOString();
+  snapshot.doneAtDeletion = doneCount(emp);
+  snapshot.totalAtDeletion = allTasks(emp.type).length;
+  deletedEmps[id] = snapshot;
+  delete emps[id];
+  _pendingDeleteId = null;
+  saveData();
+  saveDeleted();
+  selectedId = null;
+  showToast(empName + " moved to Deleted records.", "ok");
+  renderSidebar();
+  showCompletedPage(null);
 }
 
 // ── FORM HELPERS ──────────────────────────────────────────────────────────────
